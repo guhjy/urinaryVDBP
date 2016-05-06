@@ -1,3 +1,8 @@
+library(plyr)
+library(dplyr)
+library(nephro)
+library(ggplot2)
+
 ds <- readRDS(file='ds.Rds')
 
 ds %>% 
@@ -19,11 +24,7 @@ ds %>%
 
 
 # Check normal distribution
-ggplot(ds, aes(x=VitaminD)) +
-  geom_histogram(binwidth=0.5,
-                 colour='black', fill='white') +
-  xlab('log UDBP:Creatinine')
-theme_minimal()
+histo_plot(ds$VitaminD, 0.5, 'Vitamin D Concentration')
 
 ###########################################################################################
 ## TABLE 1 
@@ -238,8 +239,9 @@ ggplot(tb3, aes(x=Age, y=UDBP_cr_ln, colour=mcr_status)) +
   ylab('ln(UDBP:Creatinine)') +
   theme_bw()
 
-####################################################################
-# Serum 25(OHD) Correlation
+######################################################################
+## Serum 25(OHD) Correlation
+######################################################################
 
 tb4 <-
   ds %>% 
@@ -247,11 +249,7 @@ tb4 <-
   na.omit()
 
 ## Check distribution of serum 25(OH)D
-ggplot(ds, aes(x=VitaminD_ln)) +
-  geom_histogram(binwidth=.05,
-                 colour='black', fill='white') +
-  xlab('log Serum 25(OH)D (nmol/L)')
-theme_minimal()
+histo_plot(ds$VitaminD, 0.5, 'Serum 25(OH)D Concentration (mmol/ng)')
 
 ## Check normality
 shapiro.test(tb4$VitaminD_ln)
