@@ -24,3 +24,14 @@ box_plot = function(ds, xvar, yvar, xcat, xlab='', ylab='') {
 # box_plot(tb2, tb2$eGFR_status, tb2$UDBP_cr_ln,
 #          c('normal','mild','moderate'),
 #          'Estimated GFR','log UDBP:Creatinine')
+
+histo_plot = function(ds,variable, bin, xlab='') {
+  ggplot(data=ds, aes(x=variable)) +
+    geom_histogram(binwidth=bin,
+                   colour='black', fill='white') +
+    xlab(xlab) +
+    theme_minimal()
+}
+
+# EXAMPLE:
+# histo_plot(ds, ds$VitaminD, 2, 'Serum 25(OH)D')
