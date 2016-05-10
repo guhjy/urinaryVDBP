@@ -1,6 +1,9 @@
 #######################################################################################
 ## Load and Clean Data [https://bitbucket.org/promise-cohort/promise]
 #######################################################################################
+
+# No need to run unless data has changed
+
 ds_init <- PROMISE::PROMISE_data %>%
   filter(VN == 1, UDBP < 5000)
 
@@ -15,23 +18,30 @@ ds <- ds_init %>%
                                    ifelse(IGT == 1, 'IGT',
                                           'NGT'))),
          mcr_status = ifelse(MicroalbCreatRatio < 2, 'normal',
-                             ifelse(ds$MicroalbCreatRatio > 20, 'macroalbuminuria',
+                             ifelse(MicroalbCreatRatio > 20, 'macroalbuminuria',
                                     'microalbuminuria')),
          creat.mgdl = Creatinine * 0.011312,
          eGFR = CKDEpi.creat(creat.mgdl, SexNum, Age, isAfrican),
-         eGFR_status = ifelse(eGFR < 60, 'moderate',
+         eGFR_status = ifelse(eGFR>=90 & eGFR<150, 'normal',
                               ifelse(eGFR >= 60 & eGFR < 90, 'mild',
-                                     'normal')),
-         UDBP_status = ifelse(ds$UDBP < 1.23, 'low',
-                              ifelse(ds$UDBP > 60, 'high',
+                                     'moderate')),
+         UDBP_status = ifelse(UDBP < 1.23, 'low',
+                              ifelse(UDBP > 60, 'high',
                                      'normal')),
          UDBP_cr = UDBP/Creatinine,
          UDBP_ln = log(UDBP),
          UDBP_cr_ln = log(UDBP_cr),
-         VitaminD_ln = log(VitaminD)) %>% 
-  select(SID, BMI, Age, Sex, Ethnicity,
+         VitaminD_ln = log(VitaminD),
+         eGFR_ln = log(eGFR),
+         mcr_ln = log(MicroalbCreatRatio)) %>% 
+  # filter(eGFR < 200) %>% 
+  select(SID, BMI, Waist, Age, Sex, Ethnicity, 
+         Glucose0, Glucose120, 
          dm_status, mcr_status, eGFR_status, UDBP_status,
-         UDBP, UDBP_cr, UDBP_ln, UDBP_cr_ln,
-         VitaminD, VitaminD_ln)
+         MicroalbCreatRatio, eGFR, UrineMicroalbumin, UrineCreatinine, Creatinine,  
+         UDBP, UDBP_cr, UDBP_ln, UDBP_cr_ln, 
+         eGFR_ln, mcr_ln, 
+         VitaminD, VitaminD_ln,
+         SmokeCigs, MeanArtPressure, Systolic, Diastolic)
 
 saveRDS(ds, file='ds.Rds')
