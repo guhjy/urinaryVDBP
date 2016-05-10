@@ -5,15 +5,10 @@ library(ggplot2)
 
 ds <- readRDS(file='ds.Rds')
 
-ds %>% 
-  group_by(dm_status) %>% 
-  summarize(gluc0=max(Glucose0),
-            gluc120=max(Glucose120))
-
-# Check n
+## Check n ##
 table(ds$dm_status)
 
-# Luke's method
+## Check n of multiple variables ##
 ds %>%
   tbl_df()%>%
   select(SID, UDBP, eGFR, matches('Glucose'), Sex, Ethnicity, Age, BMI, dm_status) %>%
@@ -22,48 +17,42 @@ ds %>%
   group_by(Measure) %>%
   summarise(n = n())
 
-
 # Check normal distribution
-histo_plot(ds$VitaminD, 0.5, 'Vitamin D Concentration')
+histo_plot(ds$UDBP_cr, .5, 'UDBP:Creatinine (ng/mL)')
+
+# Check continous distribution
+scatter_plot(ds$Diastolic, ds$UDBP_cr_ln, 
+             'Diastolic blood pressure (mmHg)', 'log UDBP:Creatinine') +
+geom_smooth(se=TRUE, colour='black')
+
+cor.test(ds$Diastolic, ds$UDBP_cr_ln, method='spearman', exact=FALSE)
 
 ###########################################################################################
-## TABLE 1 
+## TABLE 1 ##
 ###########################################################################################
-
 tb1 <-
   ds %>%
-  select(UDBP_status, dm_status, Age, Sex, group_ethn, BMI, Waist,
-         Creatinine, UrineMicroalbumin, UrineCreatinine, MicroalbCreatRatio, eGFR,
-         Glucose0, Glucose120) %>%  # Form 015 on dataDictionary
+  select(UDBP_status, dm_status, Age, Sex, Ethnicity, BMI, Waist,
+         UrineMicroalbumin, UrineCreatinine, MicroalbCreatRatio, eGFR,
+         Glucose0, Glucose120,
+         MeanArtPressure, VitaminD) %>%  # Form 015 on dataDictionary
   na.omit()  # Omit the missing values ""
 
-ddply(tb1, .(UDBP_status), plyr::summarize,
-      age_mean = mean(Age), age_sd = sd(Age),
-      BMI_mean = mean(BMI), BMI_sd = sd(BMI),
-      WC_mean = mean(Waist), WC_sd = sd(Waist),
-      UAlb_mean = mean(UrineMicroalbumin), UAlb_sd = sd(UrineMicroalbumin),
-      UCreat_mean = mean(UrineCreatinine), UCreat_sd = sd(UrineCreatinine),
-      eGFR_mean = mean(eGFR), eGFR_sd = sd(eGFR),
-      glucose0_mean = mean(Glucose0), glucose0_sd = sd(Glucose0),
-      gluc120_mean = mean(Glucose120), gluc120_sd = sd(Glucose120))
+# dplyr method
+ds %>% 
+  group_by(UDBP_status) %>% 
+  # na.omit() %>% 
+  summarise(mean=mean(Diastolic), sd=sd(Diastolic))
 
 prop.table(table(tb1$Sex, tb1$UDBP_status), 2) # column proportions (change 1 to 2 for row/column)
 prop.table(table(tb1$group_ethn, tb1$UDBP_status), 2)
 prop.table(table(tb1$dm_status, tb1$UDBP_status), 2)
 
-# aggregate(tb1$Age ~ tb1$UDBP_status, data=ds, FUN=mean)
-# aggregate(tb1$BMI ~ tb1$UDBP_status, data=ds, FUN=mean)
-# aggregate(tb1$Waist ~ tb1$UDBP_status, data=ds, FUN=mean)
-# aggregate(tb1$UrineMicroalbumin ~ tb1$UDBP_status, data=ds, FUN=mean)
-# aggregate(tb1$UrineCreatinine ~ tb1$UDBP_status, data=ds, FUN=mean)
-# aggregate(tb1$eGFR ~ tb1$UDBP_status, data=ds, FUN=mean)
-# aggregate(tb1$Glucose0 ~ tb1$UDBP_status, data=ds, FUN=mean)
-# aggregate(tb1$Glucose120 ~ tb1$UDBP_status, data=ds, FUN=mean)
-
-# sd(ds$Age [ds$UDBP_status=="high"] , na.rm = TRUE)  # stdev (change var as needed)
+# aggregate method
+aggregate(tb1$Age ~ tb1$UDBP_status, data=ds, FUN=mean)
 
 # ANOVA for table 1
-summary(aov(tb1$Age~tb1$UDBP_status))
+summary(aov(ds$Diastolic~ds$UDBP_status))
 aov.BMI <- (aov(tb1$BMI~tb1$UDBP_status))
 aov.WC <- (aov(tb1$Waist~tb1$UDBP_status))
 summary(aov(tb1$UrineMicroalbumin~tb1$UDBP_status))
@@ -79,19 +68,9 @@ chisq.test(table(tb1$Sex, tb1$UDBP_status), correct = TRUE)
 chisq.test(table(tb1$group_ethn, tb1$UDBP_status), correct = TRUE)
 chisq.test(table(tb1$dm_status, tb1$UDBP_status), correct = TRUE)
 
-###########
-# Table 2 #
-###########
-tb2 <-
-  ds %>%
-  select(UDBP, eGFR_status, mcr_status, dm_status,
-         UDBP_cr, UDBP_cr_ln, eGFR_ln, MCR_ln,
-         eGFR, MicroalbCreatRatio, UrineMicroalbumin, Glucose0, Glucose120) %>%
-  filter(eGFR < 150) %>% # eGFR too high likely inaccurate assay
-  na.omit()
-
-# tb2$eGFR_status <- factor(tb2$eGFR_status, levels = c('Normal', 'Mild', 'Moderate'),
-#                           ordered = TRUE)
+#####################################################################################
+## Table 2 ##
+#####################################################################################
 
 aggregate(tb2$UrineMicroalbumin ~ tb2$eGFR_status, data=ds, FUN=median)
 aggregate(tb2$UDBP_cr_ln ~ tb2$eGFR_status, data=ds, FUN=quantile) # Take the (25%, 75%)
@@ -111,23 +90,23 @@ summary(aov(tb2$UDBP_cr_ln~tb2$dm_status))
 TukeyHSD(tb2.aovGFR)
 
 # Boxplots
-ggplot(tb2, aes(x=tb2$eGFR_status, y=tb2$UDBP_cr_ln)) +
+ggplot(ds, aes(x=ds$eGFR_status, y=ds$UDBP_cr_ln)) +
   geom_boxplot() +
   scale_x_discrete(limits=c('normal','mild','moderate')) +
   xlab('Estimated GFR') +
   ylab('log UDBP:Creatinine') +
   theme_bw()
 
-ggplot(tb2, aes(x=tb2$mcr_status, y=tb2$UDBP_cr_ln)) +
+ggplot(ds, aes(x=ds$mcr_status, y=ds$UDBP_cr_ln)) +
   geom_boxplot(fill='#00c5b9', colour='#2f3848') +
   scale_x_discrete(limits=c('normal','microalbuminuria','macroalbuminuria')) +
   xlab('Albuminuria') +
   ylab('log UDBP:Creatinine') +
   theme_set(theme_minimal())
 
-ggplot(tb2, aes(x=tb2$dm_status, y=tb2$UDBP_cr_ln)) +
+ggplot(ds, aes(x=ds$dm_status, y=ds$UDBP_cr_ln)) +
   geom_boxplot(fill='#00c5b9', colour='#2f3848') +
-  scale_x_discrete(limits=c('normal','prediabetes','DM')) +
+  scale_x_discrete(limits=c('NGT','IFG', 'IGT','DM')) +
   xlab('Diabetic Status') +
   ylab('log UDBP:Creatinine') +
   theme_set(theme_minimal())
@@ -138,14 +117,14 @@ ggplot(tb2, aes(x=tb2$dm_status, y=tb2$UDBP_cr_ln)) +
 #00c5b9 turquoise
 #2f3848 dark grey
 
-ggplot(tb2, aes(x=tb2$eGFR_ln, y=tb2$UDBP_cr_ln)) +
+ggplot(ds, aes(x=ds$eGFR_ln, y=ds$UDBP_cr_ln)) +
   geom_point() +
   geom_smooth(method=lm, se=FALSE, colour='#2f3848') +
   xlab('log Estimated GFR (mL/min/1.73m^2)') +
   ylab('log UDBP:Creatinine') +
   theme_bw()
 
-ggplot(tb2, aes(x=tb2$MCR_ln, y=tb2$UDBP_cr_ln)) +
+ggplot(tb2, aes(x=tb2$mcr_ln, y=tb2$UDBP_cr_ln)) +
   geom_point() +
   geom_smooth(method=lm, se=FALSE, colour='#2f3848') +
   xlab('log Microalbumin:Creatinine (mg/mmol)') +
@@ -168,17 +147,9 @@ cor.test(tb2$MCR_ln, tb2$UDBP_cr_ln, method='spearman', exact=FALSE)
 #                ylab='ln(UDBP:Creatinine)',
 #                col="#f05768")
 
-####################
-# Table 3 - ANCOVA #
-####################
-
-tb3 <-
-  ds %>%
-  select(Age, Sex, Ethnicity, Waist, SmokeCigs,
-         UrineMicroalbumin, UrineCreatinine,
-         eGFR, MicroalbCreatRatio, eGFR_status, mcr_status,
-         UDBP_cr_ln) %>%
-  na.omit()
+########################################################################################
+## Table 3 ##
+########################################################################################
 
 # Checking for covariants
 # SmokeCigs
@@ -186,7 +157,7 @@ tb3 <-
 
 pairs(tb3)
 plot(tb3$eGFR, tb3$dxa_subtot_ffm)
-cor.test(ds$Waist, ds$UDBP_cr_ln, method='spearman', exact=FALSE)
+cor.test(ds$VitaminD, ds$UDBP, method='spearman', exact=FALSE)
 cov(tb3$UDBP_cr_ln, tb3$Age)
 
 # Homogeneity of Variance (between outcome and predictor)
@@ -233,23 +204,18 @@ confint(posth.1) # computes CI
 # Effect size calculated by hand
 
 # Plot
-ggplot(tb3, aes(x=Age, y=UDBP_cr_ln, colour=mcr_status)) +
+ggplot(ds, aes(x=Age, y=UDBP_cr_ln, colour=mcr_status)) +
   geom_point() +
   xlab('Age') +
   ylab('ln(UDBP:Creatinine)') +
-  theme_bw()
+  theme_minimal()
 
 ######################################################################
-## Serum 25(OHD) Correlation
+## Serum 25(OHD) Correlation ##
 ######################################################################
-
-tb4 <-
-  ds %>% 
-  select(VitaminD, VitaminD_ln, UDBP, UDBP_cr, UDBP_cr_ln) %>% 
-  na.omit()
 
 ## Check distribution of serum 25(OH)D
-histo_plot(ds$VitaminD, 0.5, 'Serum 25(OH)D Concentration (mmol/ng)')
+histo_plot(ds$VitaminD, 0.5, 'Serum 25(OH)D Concentration (nmol/L)')
 
 ## Check normality
 shapiro.test(tb4$VitaminD_ln)
@@ -258,9 +224,5 @@ shapiro.test(tb4$VitaminD_ln)
 cor.test(tb4$UDBP_cr_ln, tb4$VitaminD_ln, method='spearman', exact=FALSE)
 
 ## Plots
-ggplot(tb4, aes(x=tb4$VitaminD_ln, y=tb4$UDBP_cr_ln)) +
-  geom_point() +
-  geom_smooth(method=lm, se=FALSE, colour='black') +
-  xlab('log Serum 25(OH)D (nmol/L)') +
-  ylab('log UDBP:Creatinine') +
-  theme_bw()
+scatter_plot(ds$VitaminD_ln, ds$UDBP_cr_ln,
+             'log Serum 25(OH)D (nmol/L)', 'log UDBP:Creatinine')
