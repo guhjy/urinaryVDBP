@@ -1,0 +1,53 @@
+---
+title: "URINARY EXCRETION OF VITAMIN D BINDING PROTEIN ACROSS VARYING DEGREES OF KIDNEY DYSFUNCTION AND DISGLYCEMIA"
+author: "WINDY WANG"
+date: "May 17, 2016"
+# bibliography: bibliography.bib
+output: 
+  word_document:
+    reference_docx: ../docx_template.docx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+
+library(carpenter)
+library(ggplot2)
+library(knitr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(pander)
+library(nephro)
+
+ds <- readRDS(file='../ds.Rds')
+source('../R/functions.r')
+```
+
+<!-- # INTRODUCTION -->
+
+<!-- Diabetes rates in Canada have almost doubled over the past decade and it is projected that they will continue to rise (1). In 2010, the prevalence of diabetes across 216 countries was found to be 6.4%, and is expected to increase to 7.7% by 2030 (2). While there are a number of complications associated with type 2 diabetes mellitus (T2DM), diabetic nephropathy (DN) is a major cause of morbidity and mortality. DN often results in end stage renal disease (ESRD), which can only be treated by kidney transplant or dialysis (3, 4). The early stages of DN is marked by microalbuminuria, where small amounts of albumin are leaked into the urine due to permeability problems in the kidney glomerulus. -->
+
+<!-- Poor vitamin D status is frequently observed in patients with T2DM. 7-dehydrocholesterol from sunlight and cholecalciferol from the diet are the precursors to active vitamin D (5). One hydroxyl group is added by 25-hydroxylase in the liver to form 25-hydroxyvitamin D3 (25(OH)D), the storage form of vitamin D. Another hydroxyl group is added in the kidneys by 1α-hydroxylase to give active 1,25-dihydroxyvitamin D3 (1,25(OH)2D) (5, 6). Both 25(OH)D and 1,25(OH)2D are bound to proteins in circulation (6). The vitamin D binding protein (VDBP) carries 85-90% of vitamin D metabolites (7, 8). -->
+
+<!-- It is well recognized from cross-sectional studies that low vitamin D status is common in diabetes (9, 10). Prospective studies have reported consistent associations of low 25(OH)D with incident diabetes (11–13), but randomized control trials (RTCs) involving vitamin D supplementation have been inconsistent to date. Notwithstanding the fact that most existing trials have been poorly designed (in terms of duration, sample size, supplemented dose, outcome characterization, etc), but the general finding to date is that supplementation does not affect glucose tolerance in those with normal glycemia, but there have been slight improvements to fasting glucose levels and insulin sensitivity in subjects with impaired glucose tolerance and diabetes (14). -->
+
+<!-- There are various mechanisms which link vitamin D to diabetes pathology. Rat models have demonstrated that pancreatic insulin secretion is inhibited by vitamin D deficiency (15). Injection of 1,25(OH)2D significantly increases β-cell cytosolic Ca2+ levels, which promotes the exocytosis of insulin from islet cells (16). Vitamin D can also bind to intracellular vitamin D receptors to regulate the body’s response to glucose by altering transcription of insulin receptor genes (17). As well, vitamin D has been found to improve insulin sensitivity in peripheral tissues (18, 19). -->
+
+<!-- Currently, it is unclear whether hypovitaminosis D is a cause or consequence of diabetes pathology. While there is considerable research currently focused on low vitamin D levels as a risk factor for the development of diabetes, it is also conceivable that hypovitaminosis D may also be caused by diabetes pathophysiology itself (i.e. be a consequence of the disease). There are a number of potential pathways through which diabetes may cause poor vitamin D status, such as co-morbidity (including obesity), low levels of physical activity, low sun exposure, and chronic inflammation (20).  Recently, a paper by Thraikill et al. found that urinary loss of VDBP is higher in subjects with type 1 diabetes compared to healthy controls, which raises the novel idea that renal excretion of VDBP–which may still be bound to 25(OH)D–could account for hypovitaminosis D in individuals with diabetes (11).  -->
+
+<!-- There have been a limited number of studies examining the role that urinary excretion of VDBP plays in the pathology of diabetes, and findings have been inconclusive. A cross-sectional study conducted by Thrailkill et al. in 115 subjects with type 1 diabetes (T1DM) and 55 age-matched controls showed that there is exaggerated urinary loss of VDBP in T1DM subjects compared to non-diabetic age-matched controls, particularly in association with poorer glycemic control and albuminuria (11). Multivariate analysis showed significant positive correlations between urinary VDBP with microalbuminuria (β = 1.312), glycosylated hemoglobin (β = 0.208), average capillary glucose (β = 0.931), and serum 1,25(OH)2D concentrations (β = 0.607). The study suggests that exaggerated urinary loss of VDBP in T1DM could be contributing to the low vitamin D levels observed in this disease. Other studies support the finding that there are higher levels of urinary VDBP in diabetes compared to controls. Tian et al. (12) found that urinary VDBP was higher in diabetic patients with nephropathy and micro- or macroalbuminuria compared to healthy controls or diabetic patients with normoalbuminuria.  -->
+
+<!-- There are supportive animal data which have focused on low vitamin D status as a result of renal reabsorption problems in diabetic rats (21). A digestion-resistant starch diet prevented urinary excretion of VDBP in rats with T1DM (22), indicating a potential pathway between glucose and VDBP elimination. Further study by Koh et al. investigated whether feeding resistant starch could similarly prevent vitamin D loss in diabetic rats. It was found that rats fed the control diet had 89% and 97% higher urinary excretion of 25(OH)D and 1,25(OH)2D respectively. Serum 25(OH)D levels were also 31% lower in the control group. Histopathologic examinations of the kidneys revealed that the resistant starch diet attenuated diabetes-mediated damage by 21%. This suggests that starch digestion plays a role in loss of VDBP. -->
+
+<!-- However, there is limited research on the relationship between urinary VDBP loss and glycemic status. The few studies that explored the idea have mostly focused on inflammation and type 1 diabetes rather than type 2 diabetes (11, 13, 22). In addition, most studies to date have not examined at the association of urinary VDBP with both eGFR and albuminuria as measures of kidney function. -->
+
+<!-- The objectives of this project were to examine the cross-sectional associations of urinary vitamin D binding protein concentrations with the severity of kidney dysfunction and the degree of glucose tolerance. The hypothesized finding was that subjects with more severe kidney dysfunction and glycemic status will have higher urinary concentrations of VDBP. -->
+
+# RESULTS
+
+```{r}
+ds %>% 
+  table_baseline('eGFR_status')
+```
+
