@@ -25,7 +25,7 @@ scatter_plot(ds$Diastolic, ds$UDBP_cr_ln,
              'Diastolic blood pressure (mmHg)', 'log UDBP:Creatinine') +
 geom_smooth(se=TRUE, colour='black')
 
-cor.test(ds$Diastolic, ds$UDBP_cr_ln, method='spearman', exact=FALSE)
+cor.test(ds$Diastolic, ds$UDBP_cr_ln, method='spearman', exact=FALSE)$p.value
 
 ###########################################################################################
 ## TABLE 1 ##

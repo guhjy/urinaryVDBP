@@ -4,7 +4,7 @@ author: "WINDY WANG"
 date: "May 25, 2016"
 output: 
   word_document:
-    reference_docx: docx_template.docx
+    # reference_docx: docx_template.docx
 ---
 
 ```{r setup, include=FALSE}
@@ -23,17 +23,21 @@ figs <- captioner(prefix = 'Figure')
 ds <- readRDS(file='ds.Rds')
 source('R/functions.r')
 ```
+```{r}
+fig_scatter <- figs(name='calcium-calcium:cr',
+     caption="Association between urinary calcium and urinary calcium adjusted for urine volume using urinary creatinine. Significance was assessed using Spearman's Rank Correlation, r = 0.69, p < 0.001.")
+
+fig_PTH <- figs(name='PTH-UCa',
+     caption="Association between parathyroid hormone and urinary calcium. Significance was assessed using Spearman's Rank Correlation, r = -0.15, p < 0.001.")
+```
 
 ## Urinary Calcium: Adjusted vs Unadjusted
 
-```{r}
+```{r fig_scatter, fig.cap=fig_scatter}
 ds %>% 
   scatter_plot('UrinaryCalcium', 'CaCrRatio',
              'Urinary Calcium (mmol/L)', 'Urinary Calcium : Urinary Creatinine') +
   geom_smooth(method=lm, colour='black')
-
-figs(name='calcium-calcium:cr',
-     caption="Association between urinary calcium and urinary calcium adjusted for urine volume using urinary creatinine. Significance was assessed using Spearman's Rank Correlation, r = 0.69, p < 0.001.")
 ```
 
 Generally, there is a linear relationship between urinary calcium adjusted and unadjusted for urine volume (r = 0.69, *p* < 0.001), a few points deviate from the regression line. 
@@ -43,23 +47,22 @@ All subsequent analysis will be performed using the adjusted urinary calcium var
 
 ## Urinary calcium and Parathyroid Hormone
 
-```{r}
+```{r PTH, fig.cap=fig_PTH}
 ds %>% 
   scatter_plot('PTH', 'CaCrRatio',
              'Parathyroid Hormone (pmol/L)', 'Urinary Calcium:Creatinine') +
   geom_smooth(method=lm, colour='black')
-
-figs(name='PTH-UCa',
-     caption="Association between parathyroid hormone and urinary calcium. Significance was assessed using Spearman's Rank Correlation, r = -0.15, p < 0.001.")
+cor_pvalue <- cor.test(ds$Diastolic, ds$UDBP_cr_ln, method='spearman', exact=FALSE)$p.value %>% 
+  round(4)
 ```
 
-There is a slight negative relationship between parathyroid hormone (PTH) and urinary calcium (r = -0.15, *p* < 0.001). PTH increases renal reabsorption of calcium in order to increase serum levels. As expected, there is less urinary calcium when serum PTH concentrations are higher.
+There is a slight negative relationship between parathyroid hormone (PTH) and urinary calcium (r = `r cor(ds$PTH, ds$CaCrRatio, use="complete.obs") %>% round(2)`, p = `r cor_pvalue`). PTH increases renal reabsorption of calcium in order to increase serum levels. As expected, there is less urinary calcium when serum PTH concentrations are higher. 
 
 
 ## Serum 25(OH)D and Urine Calcium
 
 ```{r}
-ds %>% 
+ds %>%
   scatter_plot('VitaminD', 'CaCrRatio',
              'Serum 25(OH)D (nmol/L)', 'Urinary Calcium:Creatinine') +
   geom_smooth(method=lm, colour='black')

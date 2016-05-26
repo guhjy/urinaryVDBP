@@ -13,7 +13,8 @@ table_baseline <- function(data, byfactor = '') {
     mutate(
       eGFR_status = factor(eGFR_status, ordered = FALSE),
       dm_status = factor(dm_status, ordered = FALSE),
-      UDBP_status = factor(UDBP_status, ordered = FALSE)
+      UDBP_status = factor(UDBP_status, ordered = FALSE),
+      fVN = factor(VN, levels=c(1, 3, 6), labels=c('Baseline', 'Year3', 'Year6'))
     ) %>%
     carpenter::outline_table(
       c(
@@ -22,7 +23,6 @@ table_baseline <- function(data, byfactor = '') {
         'Ethnicity',
         'BMI',
         'Waist',
-        'UDBP',
         'UrineMicroalbumin',
         'UrineCreatinine',
         'MicroalbCreatRatio',
@@ -49,7 +49,6 @@ table_baseline <- function(data, byfactor = '') {
                         carpenter::stat_meanSD, digits = 1) %>%
     carpenter::add_rows(
       c(
-        'UDBP',
         'UrineMicroalbumin',
         'UrineCreatinine',
         'MicroalbCreatRatio',
