@@ -3,7 +3,25 @@
 #################################################################################
 rename_table_rows <- function(x) {
   gsub('Age', 'Age (years)', x) %>% 
-  gsub('Waist', 'Waist Circumference (cm)', .)
+  gsub('Waist', 'Waist Circumference (cm)', .) %>% 
+  gsub('Ethnicity', 'Ethnicity (%)', .) %>% 
+  gsub('Sex', 'Sex (%)', .) %>% 
+  gsub('eGFR', 'Estimated GFR (ml/min/1.73m^2)', .) %>% 
+  gsub('MicroalbCreatRatio', 'Microalbumin:Creatinine', .) %>% 
+  gsub('UrineCreatinine', 'Urinary Creatinine (mmol/L)', .) %>% 
+  gsub('UrineMicroalbumin', 'Urinary Microalbumin (mg/L)', .) %>% 
+  gsub('Creatinine', 'Serum Creatinine ($\mu$mol/L)', .) %>% 
+  gsub('VitaminD', 'Serum 25(OH)D (nmol/L)', .) %>% 
+  gsub('Diastolic', 'Diastolic Blood Pressure (mmHg)', .) %>% 
+  gsub('MeanArtPressure', 'Mean Arterial Pressure (mmHg)', .) %>% 
+  gsub('Systolic', 'Systolic Blood Pressure (mmHg)', .) %>% 
+  gsub('PTH', 'Parathyroid Hormone (pmol/L)', .) %>% 
+  gsub('ALT', 'Serum ALT (U/L)', .) %>% 
+  gsub('Glucose0', 'Fasting', .) %>% 
+  gsub('Glucose120', '2h OGTT', .) %>% 
+  gsub('dm_status', 'Diabetic Status', .) %>% 
+  gsub('DM', 'Diabetes', .) %>% 
+  gsub('NGT', 'Normal', .)
 }
 
 ## Characerization by eGFR status
