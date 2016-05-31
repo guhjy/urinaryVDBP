@@ -1,72 +1,69 @@
 library(plyr)
 library(dplyr)
+library(tidyr)
 library(nephro)
 library(ggplot2)
+library(knitr)
+library(pander)
 
 ds <- readRDS(file='ds.Rds')
+source('functions.r')
 
 ## Check n ##
-table(ds$dm_status)
+table(ds$eGFR_status)
 
 ## Check n of multiple variables ##
 ds %>%
-  tbl_df()%>%
-  select(SID, UDBP, eGFR, matches('Glucose'), Sex, Ethnicity, Age, BMI, dm_status) %>%
+  tbl_df() %>%
+  select(SID, Age, Sex, Ethnicity, BMI, Waist, 
+         UrineMicroalbumin, UrineCreatinine, MicroalbCreatRatio, eGFR,
+         VitaminD, Creatinine, PTH,
+         MeanArtPressure, Systolic, Diastolic,
+         Glucose0, Glucose120, dm_status) %>%
   gather(Measure, Value, -SID) %>%
   na.omit() %>%
   group_by(Measure) %>%
   summarise(n = n())
 
+ds %>% 
+  tbl_df() %>% 
+  select(UrinaryCalcium) %>%
+  na.omit() %>% 
+  summarise(max = max(UrinaryCalcium))
+
 # Check normal distribution
-histo_plot(ds$UDBP_cr, .5, 'UDBP:Creatinine (ng/mL)')
+histo_plot(ds$UrinaryCalcium, 0.1, 'UDBP')
 
 # Check continous distribution
-scatter_plot(ds$Diastolic, ds$UDBP_cr_ln, 
-             'Diastolic blood pressure (mmHg)', 'log UDBP:Creatinine') +
-geom_smooth(se=TRUE, colour='black')
+scatter.plot(ds$Creatinine, ds$UDBP, 
+             'Serum Creatinine', 'UDBP') +
+geom_smooth(se=TRUE, colour='black') # method=lm for linear line
 
-cor.test(ds$Diastolic, ds$UDBP_cr_ln, method='spearman', exact=FALSE)$p.value
+cor.test(ds$VitaminD, ds$CaCrRatio, method='spearman', exact=FALSE)
 
 ###########################################################################################
 ## TABLE 1 ##
 ###########################################################################################
-tb1 <-
-  ds %>%
-  select(UDBP_status, dm_status, Age, Sex, Ethnicity, BMI, Waist,
-         UrineMicroalbumin, UrineCreatinine, MicroalbCreatRatio, eGFR,
-         Glucose0, Glucose120,
-         MeanArtPressure, VitaminD) %>%  # Form 015 on dataDictionary
-  na.omit()  # Omit the missing values ""
 
 # dplyr method
 ds %>% 
-  group_by(UDBP_status) %>% 
-  # na.omit() %>% 
-  summarise(mean=mean(Diastolic), sd=sd(Diastolic))
+  group_by(VN) %>% 
+  na.omit() %>%
+  summarise(meansd=paste0(round(mean(Age), 1), " (",round(sd(Age), 1), ")")) %>% 
+  spread(VN, meansd)
 
-prop.table(table(tb1$Sex, tb1$UDBP_status), 2) # column proportions (change 1 to 2 for row/column)
-prop.table(table(tb1$group_ethn, tb1$UDBP_status), 2)
-prop.table(table(tb1$dm_status, tb1$UDBP_status), 2)
+prop.table(table(tb1$Sex, tb1$UDBP_status), 2) # column proportions (1 to 2 for row/column)
 
 # aggregate method
-aggregate(tb1$Age ~ tb1$UDBP_status, data=ds, FUN=mean)
+aggregate(tb1$Age ~ tb1$eGFR_status, data=ds, FUN=mean)
 
 # ANOVA for table 1
-summary(aov(ds$Diastolic~ds$UDBP_status))
-aov.BMI <- (aov(tb1$BMI~tb1$UDBP_status))
-aov.WC <- (aov(tb1$Waist~tb1$UDBP_status))
-summary(aov(tb1$UrineMicroalbumin~tb1$UDBP_status))
-aov.creat <- (aov(tb1$UrineCreatinine~tb1$UDBP_status))
-aov.eGFR <- (aov(tb1$eGFR~tb1$UDBP_status))
-summary(aov(tb1$Glucose0~tb1$UDBP_status))
-summary(aov(tb1$Glucose120~tb1$UDBP_status))
-
-TukeyHSD(aov.WC)
+anova <- aov(ds$Age~ds$eGFR_status)
+summary(anova)
+TukeyHSD(anova)
 
 # Chi-square for table 1
-chisq.test(table(tb1$Sex, tb1$UDBP_status), correct = TRUE)
-chisq.test(table(tb1$group_ethn, tb1$UDBP_status), correct = TRUE)
-chisq.test(table(tb1$dm_status, tb1$UDBP_status), correct = TRUE)
+chisq.test(table(ds$dm_status, ds$eGFR_status), correct = TRUE)
 
 #####################################################################################
 ## Table 2 ##
@@ -124,7 +121,7 @@ ggplot(ds, aes(x=ds$eGFR_ln, y=ds$UDBP_cr_ln)) +
   ylab('log UDBP:Creatinine') +
   theme_bw()
 
-ggplot(tb2, aes(x=tb2$mcr_ln, y=tb2$UDBP_cr_ln)) +
+ggplot(ds, aes(x=mcr_ln, y=ds$UDBP_cr_ln)) +
   geom_point() +
   geom_smooth(method=lm, se=FALSE, colour='#2f3848') +
   xlab('log Microalbumin:Creatinine (mg/mmol)') +

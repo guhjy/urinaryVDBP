@@ -3,14 +3,17 @@ title: "URINARY EXCRETION OF VITAMIN D BINDING PROTEIN ACROSS VARYING DEGREES OF
 author: "WINDY WANG"
 date: "May 17, 2016"
 # bibliography: bibliography.bib
-output: 
-  word_document:
-    reference_docx: ../docx_template.docx
+output:
+ word_document
+    # reference_docx: ../docx_template.docx
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir = '../')
+```
 
+```{r pkg_data}
 library(carpenter)
 library(ggplot2)
 library(knitr)
@@ -20,8 +23,8 @@ library(tidyr)
 library(pander)
 library(nephro)
 
-ds <- readRDS(file='../ds.Rds')
-source('../R/functions.r')
+ds <- readRDS(file='ds.Rds')
+source('R/functions.r')
 ```
 
 <!-- # INTRODUCTION -->
@@ -48,6 +51,6 @@ source('../R/functions.r')
 
 ```{r}
 ds %>% 
-  table_baseline('eGFR_status')
+  table_baseline('fVN')
 ```
 

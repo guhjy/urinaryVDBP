@@ -1,0 +1,65 @@
+---
+title: "UPDATES FROM CONFERENCE CALL"
+author: "WINDY WANG"
+date: "May 17, 2016"
+# bibliography: bibliography.bib
+output: 
+  word_document:
+    reference_docx: ../docx_template.docx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+
+library(carpenter)
+library(ggplot2)
+library(knitr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(pander)
+library(nephro)
+library(captioner)
+library(pixiedust)
+
+
+ds <- readRDS(file='../ds.Rds')
+ds2 <- readRDS(file='../ds2.RdS')
+source('../R/functions.r')
+```
+
+
+```{r distribution}
+histo_plot(ds$UDBP, 10, 'Urinary Vitamin D Protein (ng/mL)')
+```
+FIGURE 1. Distribution of urinary vitamin D binding protein after excluding two hemolysed samples (n=739)
+
+As observed from Figure 1, there still appear to be two subjects with very high urinary vitamin D binding protein (UDBP) concentrations (>1000 ng/mL), even though their samples were not marked as hemolysed. There were only two subjects with hemolysed samples for baseline measures; the UDBP concentration values were 2867 ng/mL and 128 ng/mL. Unfortunately, it appears that hemolysed samples are not fully able to explain the right skew at baseline. However, taking a look at the samples from 3 year and 6 year visits, it appears that all samples marked as hemolysed tended to have extremely high UDBP concentrations, as expected. The only anomaly to that pattern was subject 2124 at baseline, with a value of 128 ng/mL as noted above.
+
+```{r subchar4}
+table.baseline(ds, 'UDBP_status', 'TABLE 1. Subject characterisitcs according to UDBP concentration categories after exclusion of hemolysed samples. Samples with values below the lower detection limit of the assay was further subcategorized.')
+```
+
+```{r Kruskal-Wallis}
+kruskal.test(ds2$BMI ~ ds2$UDBP_status)
+pairwise.t.test(ds2$BMI, ds2$UDBP_status, p.adj = 'bonf')
+```
+
+```{r chisquare}
+chisq.test(table(ds2$Sex, ds2$UDBP_status), correct = TRUE)
+```
+
+
+I also separated the samples marked as “<” (undetectable; n=12) and those with a reading below the lower detection limit (low UDBP; n=57). The number of subjects are slightly different in Table 1 compared to Table 2 (subject characterization prior seperating subjects with low UDBP into "undetectable" and "low" for comparison purposes) due to the exclusion of hemolysed samples. I used the Kruskal-Wallis Test to assess if there were significant differences between the UDBP groups. Pairwise comparisons were conducted using Bonferroni's t-test. 
+
+I added in alanine transaminase to assess liver function in this cohort, as a paper by Doorenbos et al. [-@Doorenbos2012] suggested that vitamin D binding protein (VDBP) loss may be compensated by increased VDBP production in the liver. 
+
+```{r subchar3}
+table.baseline(ds2, 'UDBP_status','TABLE 2. Subject characterisitcs according to UDBP concentration categories after exclusion of hemolysed samples. Samples with values below the lower detection limit of the assay was not further subcategorized.')
+```
+Values are reported as mean ± standard deviation. Significance for continuous variables were tested using analysis of variance (ANOVA), and significance for discrete variables were examined using chi-squared test of independence. Hemolysed samples were not removed from analysis.
+
+
+
+
+
