@@ -1,0 +1,36 @@
+---
+title: "PROMISE Longitudinal Characterization"
+author: "WINDY WANG"
+date: "May 31, 2016"
+output:
+  html_document: default
+  word_document:
+    reference_docx: ../docx_template.docx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+
+library(ggplot2)
+library(knitr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(captioner)
+
+tbls <- captioner(prefix = 'Table')
+figs <- captioner(prefix = 'Figure')
+
+ds <- readRDS(file='../ds.Rds')
+source('../R/functions.r')
+```
+```{r table_names}
+tbl_char <- tbls(name="subject-characterization",
+                 caption="Subject characteristics according to visit number.")
+```
+
+# Subject Characterization
+
+```{r sub_char, fig.cap=tbl_char}
+table_baseline(ds, 'fVN')
+```

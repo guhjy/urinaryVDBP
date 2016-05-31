@@ -1,0 +1,62 @@
+---
+title: Preliminary analysis of estimated glomerular filtration rate using the PROMISE
+  cohort at baseline
+author: "WINDY WANG"
+date: "May 12, 2016"
+output:
+  word_document:
+    reference_docx: ../docx_template.docx
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+
+library(carpenter)
+library(ggplot2)
+library(knitr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(captioner)
+
+tbls <- captioner(prefix = 'TABLE')
+figs <- captioner(prefix = 'FIGURE')
+
+ds <- readRDS(file='../ds.Rds')
+ds_base <- readRDS(file="../ds_base.Rds")
+source('../R/functions.r')
+```
+```{r table_label}
+tbl_char_base <- tbls(name='sub-char1',
+                 caption="Subject characteristic according to estimated GFR categories at baseline.")
+
+tbl_char <- tbls(name='sub-char2',
+                 caption="Subject characteristic according to estimated GFR categories across visits.")
+```
+
+
+# Subject Characterization
+
+```{r sub-char1}
+table_baseline (ds_base, 'eGFR_status', tbl_char_base)
+```
+
+```{r sub-char2}
+table_baseline(ds, 'eGFR_status', tbl_char)
+```
+
+## Moderate to Severe eGFR
+### Cross-sectional at Baseline
+
+At baseline, there were `r ds_base %>% filter(eGFR_status == 'Moderate') %>% summarise(n=n())` people who had estimated glomerular filtration rate (eGFR) of less than 60 ml/min/1.73m^2. These individuals are classified as having moderate kidney dysfunction according to the National Kidney Foundation. Upon taking a closer look at these individuals, their eGFR values are only slightly below the 60 ml/min/1.73m^2 cut-off. These two subjects had missing values for both 3 year and 6 year visits.
+
+
+|SID   | Baseline                                                        | 
+|------|-----------------------------------------------------------------|
+|2075  | `r ds_base %>% filter(SID==2075) %>% select(eGFR) %>% round(1)` |
+|2266  | `r ds_base %>% filter(SID==2266) %>% select(eGFR) %>% round(1)` | 
+
+
+### Prospective
+At the 3 year follow-up visit, there were `r ds %>% filter(VN==3, eGFR_status=='Moderate') %>% summarise(n=n())` subjects who had eGFR less than 60 ml/min/1.73m^2. This number increased to `r ds %>% filter(VN==6, eGFR_status=='Moderate') %>% summarise(n=n())` at the 6 year follow-up. The lowest eGFR was `r min(ds$eGFR) %>% round(1)`ml/min. There were two subjects with eGFR of <45 ml/min/1.73m^2, which is classified as moderate to severe kidney dysfunction. Unfortunately, no subjects have eGFR values across all time-points, making progression of the disease difficult to analyse. There were two subjects with eGFR measurements at the 3 year and 6 year time points. Their eGFR either did not change much (`r ds %>% filter(VN==3, SID==1240) %>% select(eGFR) %>% round(1)`ml/min at 3 year and `r ds %>% filter(VN==6, SID==1240) %>% select(eGFR) %>% round(1)`ml/min at 6 year) or decreased (`r ds %>% filter(VN==3, SID==1295) %>% select(eGFR) %>% round(1)`ml/min at 3 year and `r ds %>% filter(VN==6, SID==1295) %>% select(eGFR) %>% round(1)`ml/min at 6 year).
