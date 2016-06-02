@@ -5,6 +5,8 @@ library(nephro)
 library(ggplot2)
 library(knitr)
 library(pander)
+library(digest)
+library(Rcpp)
 
 ds <- readRDS(file='ds.Rds')
 source('functions.r')
@@ -25,11 +27,12 @@ ds %>%
   group_by(Measure) %>%
   summarise(n = n())
 
-ds %>% 
-  tbl_df() %>% 
-  select(UrinaryCalcium) %>%
-  na.omit() %>% 
-  summarise(max = max(UrinaryCalcium))
+ds_temp <- ds %>% 
+  select(SID, VN, eGFR, UDBP_status, UDBP, dm_status, mcr_status) %>% 
+  filter(SID == 3115) %>% 
+  arrange(VN)
+
+pandoc.table(ds_temp, style="rmarkdown")
 
 # Check normal distribution
 histo_plot(ds$UrinaryCalcium, 0.1, 'UDBP')
@@ -40,25 +43,27 @@ scatter.plot(ds$Creatinine, ds$UDBP,
 geom_smooth(se=TRUE, colour='black') # method=lm for linear line
 
 cor.test(ds$VitaminD, ds$CaCrRatio, method='spearman', exact=FALSE)
+cor(ds$PTH, ds$CaCrRatio, use="complete.obs") %>% round(2)
 
 ###########################################################################################
 ## TABLE 1 ##
 ###########################################################################################
+# USE CARPENTER TO GENERATE ENTIRE TABLE
 
 # dplyr method
 ds %>% 
-  group_by(VN) %>% 
+  group_by(fVN) %>% 
   na.omit() %>%
-  summarise(meansd=paste0(round(mean(Age), 1), " (",round(sd(Age), 1), ")")) %>% 
-  spread(VN, meansd)
+  summarise(meansd=paste0(round(mean(UDBP), 1), " (",round(sd(UDBP), 1), ")")) %>% 
+  spread(fVN, meansd)
 
 prop.table(table(tb1$Sex, tb1$UDBP_status), 2) # column proportions (1 to 2 for row/column)
 
-# aggregate method
+# aggregate method (old)
 aggregate(tb1$Age ~ tb1$eGFR_status, data=ds, FUN=mean)
 
 # ANOVA for table 1
-anova <- aov(ds$Age~ds$eGFR_status)
+anova <- aov(ds$Glucose120~ds$eGFR_status)
 summary(anova)
 TukeyHSD(anova)
 

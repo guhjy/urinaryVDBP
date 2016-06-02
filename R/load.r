@@ -5,13 +5,14 @@
 # No need to run unless data has changed
 
 ds_init <- PROMISE::PROMISE_data %>%
-  filter(UDBP < 45000)
+  filter(UDBP < 50000)
 
 ds <- ds_init %>% 
   mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62, UDBP),
          Ethnicity = as.character(Ethnicity),
          isAfrican = ifelse(Ethnicity == 'African', 1, 0), 
          Ethnicity = ifelse(Ethnicity %in% c('African', 'First Nations', 'Other'), 'Other', Ethnicity),
+         fVN = factor(VN, levels=c(1, 3, 6)), 
          SexNum = ifelse(Sex == 'F', 0, 1), 
          dm_status = ifelse(DM ==1, 'DM',
                             ifelse(IFG == 1 | IGT == 1, 'Prediabetes',
@@ -28,16 +29,16 @@ ds <- ds_init %>%
          UDBP_status = ifelse(UDBP == 0, 'Undetected',
                               ifelse(UDBP < 1.23, 'Low',
                                      ifelse(UDBP > 60, 'High', 'Normal'))),
-         UDBP_cr = UDBP/Creatinine,
-         UDBP_ln = log(UDBP),
-         UDBP_cr_ln = log(UDBP_cr),
-         CaCrRatio = UrinaryCalcium/UrineCreatinine,
-         VitaminD_ln = log(VitaminD),
-         eGFR_ln = log(eGFR),
-         mcr_ln = log(MicroalbCreatRatio)) %>% 
-  filter(eGFR<200, Creatinine<200, 
-         SID != 1131, 
-         SID != 2124) %>%
+         udbpCrRatio = UDBP/Creatinine,
+         CaCrRatio = UrinaryCalcium/UrineCreatinine) %>% 
+  filter(eGFR<200) %>% 
+  filter(Creatinine<200) %>% 
+  filter(!(SID == 1131 & VN == 1)) %>%
+  filter(!(SID == 1444 & VN == 6)) %>%
+  filter(!(SID == 2042 & VN == 3)) %>%
+  filter(!(SID == 2124 & VN == 1)) %>%
+  filter(!(SID == 3025 & VN == 6)) %>%
+  filter(!(SID == 4016 & VN == 1)) %>%
   mutate(eGFR_status=factor(eGFR_status, 
                             levels=c('Normal', 'Mild', 'Moderate', 'Hyperfiltration'), 
                             ordered=TRUE)) %>%
@@ -50,17 +51,26 @@ ds <- ds_init %>%
                             levels=c('Undetected', 'Low', 'Normal', 'High'), 
                             ordered=TRUE)) %>%
   arrange(UDBP_status) %>% 
-  select(SID, BMI, Waist, Age, Sex, Ethnicity, VN, 
+  select(SID, BMI, Waist, Age, Sex, Ethnicity, VN, fVN, 
          Glucose0, Glucose120, DM, IFG, IGT, 
          dm_status, mcr_status, eGFR_status, UDBP_status,
          MicroalbCreatRatio, eGFR, UrineMicroalbumin, UrineCreatinine, Creatinine,  
-         UDBP, UDBP_cr, UDBP_ln, UDBP_cr_ln, 
-         eGFR_ln, mcr_ln, 
-         VitaminD, VitaminD_ln,
-         SmokeCigs, MeanArtPressure, Systolic, Diastolic, PTH, ALT,
+         UDBP, udbpCrRatio, VitaminD,
+         MeanArtPressure, Systolic, Diastolic, PTH, ALT,
          CaCrRatio, UrinaryCalcium)
 
-ds2 <- ds %>% 
+# matches("meds"), SmokeCigs
+
+# Only cross-sectional baseline
+ds_base <- ds %>% 
+  filter(VN == 1)
+
+# Subjects with measurements at all time points
+ds_complete <- ds %>% 
+  na.omit()
+
+# UDBP with only three groups (low group not sub-divided)
+ds_UDBP3 <- ds %>% 
   mutate(UDBP_status = ifelse(UDBP < 1.23, 'Low',
                               ifelse(UDBP > 60, 'High', 'Normal'))) %>% 
   mutate(UDBP_status=factor(UDBP_status,
@@ -69,4 +79,6 @@ ds2 <- ds %>%
   arrange(UDBP_status)
 
 saveRDS(ds, file='ds.Rds')
-saveRDS(ds2, file='ds2.Rds')
+saveRDS(ds_UDBP3, file='ds_UDPB3.Rds')
+saveRDS(ds_base, file='ds_base.Rds')
+saveRDS(ds_complete, file="ds_complete.Rds")

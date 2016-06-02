@@ -22,15 +22,24 @@ tbls <- captioner(prefix = 'Table')
 figs <- captioner(prefix = 'Figure')
 
 ds <- readRDS(file='../ds.Rds')
+ds_complete <- readRDS(file="../ds_complete.Rds")
 source('../R/functions.r')
 ```
 ```{r table_names}
 tbl_char <- tbls(name="subject-characterization",
                  caption="Subject characteristics according to visit number.")
+
+tbl_char_all <- tbls(name="all-sub-charac",
+                     caption="Subject characteristics according to visit number after omitting all missing measurements.")
 ```
 
 # Subject Characterization
 
-```{r sub_char, fig.cap=tbl_char}
-table_baseline(ds, 'fVN')
+```{r sub_char}
+table_baseline(ds, 'fVN', tbl_char)
 ```
+
+```{r sub_char_all}
+table_baseline(ds_complete, 'fVN', tbl_char_all)
+```
+

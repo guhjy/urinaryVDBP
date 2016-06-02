@@ -59,4 +59,45 @@ At baseline, there were `r ds_base %>% filter(eGFR_status == 'Moderate') %>% sum
 
 
 ### Prospective
-At the 3 year follow-up visit, there were `r ds %>% filter(VN==3, eGFR_status=='Moderate') %>% summarise(n=n())` subjects who had eGFR less than 60 ml/min/1.73m^2. This number increased to `r ds %>% filter(VN==6, eGFR_status=='Moderate') %>% summarise(n=n())` at the 6 year follow-up. The lowest eGFR was `r min(ds$eGFR) %>% round(1)`ml/min. There were two subjects with eGFR of <45 ml/min/1.73m^2, which is classified as moderate to severe kidney dysfunction. Unfortunately, no subjects have eGFR values across all time-points, making progression of the disease difficult to analyse. There were two subjects with eGFR measurements at the 3 year and 6 year time points. Their eGFR either did not change much (`r ds %>% filter(VN==3, SID==1240) %>% select(eGFR) %>% round(1)`ml/min at 3 year and `r ds %>% filter(VN==6, SID==1240) %>% select(eGFR) %>% round(1)`ml/min at 6 year) or decreased (`r ds %>% filter(VN==3, SID==1295) %>% select(eGFR) %>% round(1)`ml/min at 3 year and `r ds %>% filter(VN==6, SID==1295) %>% select(eGFR) %>% round(1)`ml/min at 6 year).
+At the 3 year follow-up visit, there were `r ds %>% filter(VN==3, eGFR_status=='Moderate') %>% summarise(n=n())` subjects who had eGFR less than 60 ml/min/1.73m^2. This number decreased to `r ds %>% filter(VN==6, eGFR_status=='Moderate') %>% summarise(n=n())` at the 6 year follow-up. The lowest eGFR was `r min(ds$eGFR) %>% round(1)`ml/min. There were two subjects with eGFR of <45 ml/min/1.73m^2, which is classified as moderate to severe kidney dysfunction. Unfortunately, no subjects have eGFR values across all time-points, making progression of the disease difficult to analyse. There were two subjects with eGFR measurements at the 3 year and 6 year time points. Their eGFR either did not change much (`r ds %>% filter(VN==3, SID==1240) %>% select(eGFR) %>% round(1)`ml/min at 3 year and `r ds %>% filter(VN==6, SID==1240) %>% select(eGFR) %>% round(1)`ml/min at 6 year) or decreased (`r ds %>% filter(VN==3, SID==1295) %>% select(eGFR) %>% round(1)`ml/min at 3 year and `r ds %>% filter(VN==6, SID==1295) %>% select(eGFR) %>% round(1)`ml/min at 6 year).
+
+Below is a table of subjects who had eGFR < 60 ml/min across all time points.
+
+|  SID  |  VN  |   eGFR   |
+|:-----:|:----:|:--------:|
+| 1214  |  6   | 58.96812 |
+| 1240  |  3   | 58.25326 |
+| 1240  |  6   | 58.84230 |
+| 1271  |  3   | 59.84679 |
+| 1294  |  3   | 59.95090 |
+| 1295  |  3   | 59.59465 |
+| 1295  |  6   | 54.65959 |
+| 1319  |  6   | 55.10143 |
+| 1359  |  6   | 54.68440 |
+| 1508  |  6   | 40.54094 |
+| 1559  |  3   | 53.26737 |
+| 2075  |  1   | 57.08151 |
+| 2080  |  3   | 59.59465 |
+| 2088  |  3   | 56.05548 |
+| 2266  |  1   | 59.53124 |
+| 3115  |  3   | 35.41933 |
+
+The two subjects with eGFR across multiple time points are emphasized in bold.
+
+Only two subjects had eGFR < 50, so a more detailed analysis was conducted.
+
+SID 3115 had a much lower eGFR compared to others, so I took a more detailed look at his/her eGFR across different time points. It may be that there was a problem with serum creatinine, as the eGFR is in the healthy range at baseline and 6-year.
+
+|  SID  |  VN  |   eGFR    |  Creatinine  |
+|:-----:|:----:|:---------:|:------------:|
+| 3115  |  1   | 102.66156 |      65      |
+| 3115  |  3   | 35.41933  |     175      |
+| 3115  |  6   | 99.69693  |      63      |
+
+Another subject (SID 1508) also had relatively low eGFR. Based on their trend, it appears that their kidney filtration deterioated as time passed. However, they had normal MCR and were not diabetic. His/Her urinary VDBP dropped drastically at visit 3, even though other parameters (e.g. eGFR, diabetic status, MCR) that we thought were associated with UDBP did not change much. At visit 6, UDBP increased to around 90 ng/mL again. 
+
+|  SID  |  VN  |   eGFR   |  UDBP  |  DM status  |  MCR status  |
+|:-----:|:----:|:--------:|:------:|:-----------:|:------------:|
+| 1508  |  1   | 73.65681 | 90.20  |     NGT     |    Normal    |
+| 1508  |  3   | 73.85099 |  2.62  |     NGT     |      NA      |
+| 1508  |  6   | 40.54094 | 89.40  |     NGT     |    Normal    |

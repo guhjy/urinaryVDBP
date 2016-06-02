@@ -4,14 +4,12 @@
 rename_table_rows <- function(x) {
   gsub('Age', 'Age (years)', x) %>% 
   gsub('Waist', 'Waist Circumference (cm)', .) %>% 
-  gsub('Ethnicity', 'Ethnicity (%)', .) %>% 
-  gsub('Sex', 'Sex (%)', .) %>% 
   gsub('eGFR', 'Estimated GFR (ml/min/1.73m^2)', .) %>% 
-  gsub('MicroalbCreatRatio', 'Microalbumin:Creatinine', .) %>% 
+  gsub('MicroalbCreatRatio', 'Microalbumin:Creatinine', .) %>%
   gsub('UrineCreatinine', 'Urinary Creatinine (mmol/L)', .) %>% 
   gsub('UrineMicroalbumin', 'Urinary Microalbumin (mg/L)', .) %>% 
-  gsub('Creatinine', 'Serum Creatinine ($\mu$mol/L)', .) %>% 
   gsub('VitaminD', 'Serum 25(OH)D (nmol/L)', .) %>% 
+  gsub('UDBP', 'Urinary VDBP (ng/mL)', .) %>% 
   gsub('Diastolic', 'Diastolic Blood Pressure (mmHg)', .) %>% 
   gsub('MeanArtPressure', 'Mean Arterial Pressure (mmHg)', .) %>% 
   gsub('Systolic', 'Systolic Blood Pressure (mmHg)', .) %>% 
@@ -24,9 +22,9 @@ rename_table_rows <- function(x) {
   gsub('NGT', 'Normal', .)
 }
 
-## Characerization by eGFR status
+## Subject Characterization
 
-table_baseline <- function(data, byfactor = '') {
+table_baseline <- function(data, byfactor = '', caption) {
   data %>%
     mutate(
       eGFR_status = factor(eGFR_status, ordered = FALSE),
@@ -46,6 +44,7 @@ table_baseline <- function(data, byfactor = '') {
         'MicroalbCreatRatio',
         'eGFR',
         'VitaminD',
+        'UDBP',
         'Creatinine',
         'MeanArtPressure',
         'Systolic',
@@ -70,7 +69,8 @@ table_baseline <- function(data, byfactor = '') {
         'UrineMicroalbumin',
         'UrineCreatinine',
         'MicroalbCreatRatio',
-        'eGFR'
+        'eGFR',
+        'UDBP'
       ),
       carpenter::stat_meanSD,
       digits = 1
@@ -93,7 +93,7 @@ table_baseline <- function(data, byfactor = '') {
     carpenter::rename_rows(rename_table_rows) %>%
     # carpenter::rename_columns('', 'Undetectable (n=12)', 'Below Limit (n=57)',
     #                           'Normal (n=360)', 'Above Limit (n=310)')
-    carpenter::construct_table()
+    carpenter::construct_table(caption=caption)
 }
 
 
@@ -104,10 +104,9 @@ table_baseline <- function(data, byfactor = '') {
 ## Scatterplot ##
 scatter_plot = function(data, xvar, yvar, xlab='', ylab='') {
   ggplot(data, aes_string(x=xvar, y=yvar)) +
-    geom_point() +
+    geom_point() + #mapping=aes(color=mcr_status)
     xlab(xlab) +
-    ylab(ylab) +
-    theme_minimal()
+    ylab(ylab)
 }
 
 # EXAMPLE:
