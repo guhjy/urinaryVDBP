@@ -7,7 +7,7 @@
 ds_init <- PROMISE::PROMISE_data %>%
   filter(UDBP < 50000)
 
-ds <- ds_init %>% 
+ds_clean <- ds_init %>% 
   mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62, UDBP),
          Ethnicity = as.character(Ethnicity),
          isAfrican = ifelse(Ethnicity == 'African', 1, 0), 
@@ -50,23 +50,24 @@ ds <- ds_init %>%
   mutate(UDBP_status=factor(UDBP_status, 
                             levels=c('Undetected', 'Low', 'Normal', 'High'), 
                             ordered=TRUE)) %>%
-  arrange(UDBP_status) %>% 
+  arrange(UDBP_status)
+  
+ds <- ds_clean %>% 
   select(SID, BMI, Waist, Age, Sex, Ethnicity, VN, fVN, 
-         Glucose0, Glucose120, DM, IFG, IGT, 
-         dm_status, mcr_status, eGFR_status, UDBP_status,
-         MicroalbCreatRatio, eGFR, UrineMicroalbumin, UrineCreatinine, Creatinine,  
-         UDBP, udbpCrRatio, VitaminD,
-         MeanArtPressure, Systolic, Diastolic, PTH, ALT,
-         CaCrRatio, UrinaryCalcium)
-
-# matches("meds"), SmokeCigs
+       Glucose0, Glucose120, DM, IFG, IGT, 
+       dm_status, mcr_status, eGFR_status, UDBP_status,
+       MicroalbCreatRatio, eGFR, UrineMicroalbumin, UrineCreatinine, Creatinine,  
+       UDBP, udbpCrRatio, VitaminD,
+       MeanArtPressure, Systolic, Diastolic, PTH, ALT,
+       CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs)
 
 # Only cross-sectional baseline
 ds_base <- ds %>% 
   filter(VN == 1)
 
 # Subjects with measurements at all time points
-ds_complete <- ds %>% 
+ds_complete <- ds_clean %>% 
+  select(UDBP, MicroalbCreatRatio, eGFR) %>% 
   na.omit()
 
 # UDBP with only three groups (low group not sub-divided)
@@ -78,7 +79,9 @@ ds_UDBP3 <- ds %>%
                             ordered=TRUE)) %>% 
   arrange(UDBP_status)
 
+# Save the data
 saveRDS(ds, file='ds.Rds')
+saveRDS(ds_clean, file='ds_clean.Rds')
 saveRDS(ds_UDBP3, file='ds_UDPB3.Rds')
 saveRDS(ds_base, file='ds_base.Rds')
 saveRDS(ds_complete, file="ds_complete.Rds")

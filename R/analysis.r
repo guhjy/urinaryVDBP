@@ -6,7 +6,6 @@ library(ggplot2)
 library(knitr)
 library(pander)
 library(digest)
-library(Rcpp)
 
 ds <- readRDS(file='ds.Rds')
 source('functions.r')
