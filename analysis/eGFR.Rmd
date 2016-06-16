@@ -6,8 +6,12 @@ date: "May 12, 2016"
 output:
   word_document:
     reference_docx: ../docx_template.docx
-  html_document: default
 ---
+
+```{r knit_setup, include=FALSE}
+knitr::opts_knit$set(root.dir = '../')
+knitr::opts_chunk$set(collapse = TRUE)
+```
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
@@ -23,10 +27,12 @@ library(captioner)
 tbls <- captioner(prefix = 'TABLE')
 figs <- captioner(prefix = 'FIGURE')
 
-ds <- readRDS(file='../ds.Rds')
-ds_base <- readRDS(file="../ds_base.Rds")
-source('../R/functions.r')
+ds <- readRDS(file='ds.Rds')
+ds_base <- ds %>% 
+  filter(VN == 1)
+source('R/functions.r')
 ```
+
 ```{r table_label}
 tbl_char_base <- tbls(name='sub-char1',
                  caption="Subject characteristic according to estimated GFR categories at baseline.")
@@ -34,7 +40,6 @@ tbl_char_base <- tbls(name='sub-char1',
 tbl_char <- tbls(name='sub-char2',
                  caption="Subject characteristic according to estimated GFR categories across visits.")
 ```
-
 
 # Subject Characterization
 
@@ -49,38 +54,34 @@ table_baseline(ds, 'eGFR_status', tbl_char)
 ## Moderate to Severe eGFR
 ### Cross-sectional at Baseline
 
-At baseline, there were `r ds_base %>% filter(eGFR_status == 'Moderate') %>% summarise(n=n())` people who had estimated glomerular filtration rate (eGFR) of less than 60 ml/min/1.73m^2. These individuals are classified as having moderate kidney dysfunction according to the National Kidney Foundation. Upon taking a closer look at these individuals, their eGFR values are only slightly below the 60 ml/min/1.73m^2 cut-off. These two subjects had missing values for both 3 year and 6 year visits.
+At baseline, there were `r ds_base %>% filter(eGFR_status == 'Moderate') %>% summarise(n=n())` people who had estimated glomerular filtration rate (eGFR) of less than 60 ml/min/1.73m^2. These individuals are classified as having moderate kidney dysfunction according to the National Kidney Foundation. Upon taking a closer look at these individuals, their eGFR values are only slightly below the 60 ml/min/1.73m^2^ cut-off. These two subjects had missing values for both 3 year and 6 year visits.
 
-
-|SID   | Baseline                                                        | 
-|------|-----------------------------------------------------------------|
-|2075  | `r ds_base %>% filter(SID==2075) %>% select(eGFR) %>% round(1)` |
-|2266  | `r ds_base %>% filter(SID==2266) %>% select(eGFR) %>% round(1)` | 
-
+```{r}
+ds_base %>% 
+    filter(SID %in% c(2075, 2266)) %>% 
+    mutate(Baseline = round(eGFR, 1)) %>% 
+    select(SID, Baseline) %>% 
+    knitr::kable()
+```
 
 ### Prospective
 At the 3 year follow-up visit, there were `r ds %>% filter(VN==3, eGFR_status=='Moderate') %>% summarise(n=n())` subjects who had eGFR less than 60 ml/min/1.73m^2. This number decreased to `r ds %>% filter(VN==6, eGFR_status=='Moderate') %>% summarise(n=n())` at the 6 year follow-up. The lowest eGFR was `r min(ds$eGFR) %>% round(1)`ml/min. There were two subjects with eGFR of <45 ml/min/1.73m^2, which is classified as moderate to severe kidney dysfunction. Unfortunately, no subjects have eGFR values across all time-points, making progression of the disease difficult to analyse. There were two subjects with eGFR measurements at the 3 year and 6 year time points. Their eGFR either did not change much (`r ds %>% filter(VN==3, SID==1240) %>% select(eGFR) %>% round(1)`ml/min at 3 year and `r ds %>% filter(VN==6, SID==1240) %>% select(eGFR) %>% round(1)`ml/min at 6 year) or decreased (`r ds %>% filter(VN==3, SID==1295) %>% select(eGFR) %>% round(1)`ml/min at 3 year and `r ds %>% filter(VN==6, SID==1295) %>% select(eGFR) %>% round(1)`ml/min at 6 year).
 
 Below is a table of subjects who had eGFR < 60 ml/min across all time points.
 
-|  SID  |  VN  |   eGFR   |
-|:-----:|:----:|:--------:|
-| 1214  |  6   | 58.96812 |
-| 1240  |  3   | 58.25326 |
-| 1240  |  6   | 58.84230 |
-| 1271  |  3   | 59.84679 |
-| 1294  |  3   | 59.95090 |
-| 1295  |  3   | 59.59465 |
-| 1295  |  6   | 54.65959 |
-| 1319  |  6   | 55.10143 |
-| 1359  |  6   | 54.68440 |
-| 1508  |  6   | 40.54094 |
-| 1559  |  3   | 53.26737 |
-| 2075  |  1   | 57.08151 |
-| 2080  |  3   | 59.59465 |
-| 2088  |  3   | 56.05548 |
-| 2266  |  1   | 59.53124 |
-| 3115  |  3   | 35.41933 |
+```{r}
+SIDLowGFR <- ds %>% 
+    filter(eGFR < 60) %>% 
+    select(SID) %>% 
+    .[[1]]
+
+ds %>% 
+    filter(SID %in% SIDLowGFR) %>% 
+    select(SID, VN, eGFR) %>% 
+    arrange(SID, VN) %>% 
+    knitr::kable()
+```
+
 
 The two subjects with eGFR across multiple time points are emphasized in bold.
 
