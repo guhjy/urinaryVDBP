@@ -8,6 +8,11 @@ output:
     reference_docx: docx_template.docx
 ---
 
+```{r knit_setup, include=FALSE}
+knitr::opts_knit$set(root.dir = '../')
+knitr::opts_chunk$set(collapse = TRUE)
+```
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
 
@@ -19,6 +24,7 @@ library(dplyr)
 library(tidyr)
 library(pander)
 
+ds_clean <- readRDS(file="ds_clean.Rds")
 ds <- readRDS(file='ds.Rds')
 source('R/functions.r')
 ```
@@ -37,10 +43,11 @@ In the PROMISE cohort at baseline, it appears that there is a significant relati
 ```{r eGFR}
 cor.test(ds$eGFR, ds$VitaminD, method='spearman', exact=FALSE)
 
-scatter.plot(ds$eGFR, ds$VitaminD, 
-             'Estimated Glomerular Filtration Rate (ml/min/1.73m^2)', 
-             'Serum 25(OH)D (nmol/L)') +
-geom_smooth(se=TRUE, colour='black')
+ds %>% 
+  scatter_plot(ds$eGFR, ds$VitaminD, 
+               'Estimated Glomerular Filtration Rate (ml/min/1.73m^2)', 
+               'Serum 25(OH)D (nmol/L)') +
+  geom_smooth(se=TRUE, colour='black')
 ```
 
 ## Microalbuminuria

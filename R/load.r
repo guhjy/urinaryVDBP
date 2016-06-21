@@ -61,10 +61,6 @@ ds <- ds_clean %>%
        MeanArtPressure, Systolic, Diastolic, PTH, ALT,
        CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs)
 
-# Only cross-sectional baseline
-ds_base <- ds %>% 
-  filter(VN == 1)
-
 # Subjects with measurements at all time points
 ds_complete <- ds_clean %>% 
   select(UDBP, MicroalbCreatRatio, eGFR) %>% 

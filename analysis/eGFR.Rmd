@@ -28,28 +28,40 @@ tbls <- captioner(prefix = 'TABLE')
 figs <- captioner(prefix = 'FIGURE')
 
 ds <- readRDS(file='ds.Rds')
-ds_base <- ds %>% 
-  filter(VN == 1)
 source('R/functions.r')
 ```
 
 ```{r table_label}
-tbl_char_base <- tbls(name='sub-char1',
-                 caption="Subject characteristic according to estimated GFR categories at baseline.")
+tbl_char1 <- tbls(name='sub-char1',
+                 caption="Subject characteristics according to estimated GFR categories at baseline.")
 
-tbl_char <- tbls(name='sub-char2',
-                 caption="Subject characteristic according to estimated GFR categories across visits.")
+tbl_char3 <- tbls(name='sub-char3',
+                 caption="Subject characteristics according to estimated GFR categories at 3-year visit.")
+
+tbl_char6 <- tbls(name='sub-char6',
+                  caption = "Subject characteristics according to estimated GFR categories at 6-year visits.")
 ```
 
 # Subject Characterization
 
 ```{r sub-char1}
-table_baseline (ds_base, 'eGFR_status', tbl_char_base)
+ds %>% 
+  filter(VN == 1) %>% 
+  table_baseline ('eGFR_status', tbl_char1)
 ```
 
-```{r sub-char2}
-table_baseline(ds, 'eGFR_status', tbl_char)
+```{r sub-char3}
+ds %>% 
+  filter(VN == 3) %>% 
+  table_baseline(ds, 'eGFR_status', tbl_char3)
 ```
+
+```{r sub-char6}
+ds %>% 
+  filter(VN == 6) %>% 
+  table_baseline('eGFR_status', tbl_char6)
+```
+
 
 ## Moderate to Severe eGFR
 ### Cross-sectional at Baseline
