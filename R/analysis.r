@@ -69,6 +69,8 @@ TukeyHSD(anova)
 # Chi-square for table 1
 chisq.test(table(ds$dm_status, ds$eGFR_status), correct = TRUE)
 
+
+
 #####################################################################################
 ## Table 2 ##
 #####################################################################################
@@ -227,3 +229,35 @@ cor.test(tb4$UDBP_cr_ln, tb4$VitaminD_ln, method='spearman', exact=FALSE)
 ## Plots
 scatter_plot(ds$VitaminD_ln, ds$UDBP_cr_ln,
              'log Serum 25(OH)D (nmol/L)', 'log UDBP:Creatinine')
+
+ds_base <- ds %>% 
+  filter(VN == 3)
+
+ds_base %>% 
+  bar_plot(ds_base$dm_status, ds_base$VitaminD,
+           'Diabetic Status', 'Vitamin D')
+
+ds %>% 
+  ggplot(aes(x = fVN, y = UDBP, fill = fVN)) +
+  stat_summary(fun.y = mean, geom = "bar", position = position_dodge(1)) +
+  stat_summary(fun.ymin = sd, fun.ymax = sd, geom = "errorbar", 
+               color = "black", position = position_dodge(1), width = 0.2)
+#######
+ds %>% 
+  select(dm_status, fVN, UDBP) %>% 
+  na.omit() %>% 
+  ggplot(aes(x = dm_status, y = UDBP, fill = dm_status)) +
+  stat_summary(fun.y = mean, geom = "bar", position = position_dodge(1)) +
+  scale_fill_discrete(name = "Glycemic Status") +
+  theme(axis.text.x = element_blank(), 
+        strip.background = element_blank(),
+        axis.ticks.x = element_blank()) +
+  stat_summary(fun.data = mean_se, geom="errorbar",
+               color = "grey80", position = position_dodge(1), width = 0.2) +
+  xlab("Visit Number") +
+  ylab("Urinary vitamin D binding protein (ng/mL)") +
+  facet_grid(~fVN, switch = "x")
+#########
+
+ds %>% 
+  ggplot(aes(x = eGFR, y = UDBP, color = fVN))

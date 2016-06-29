@@ -16,6 +16,7 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(captioner)
+library(knitr)
 
 tbls <- captioner(prefix = 'Table')
 figs <- captioner(prefix = 'Figure')

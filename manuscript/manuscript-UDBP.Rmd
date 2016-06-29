@@ -24,6 +24,9 @@ library(pander)
 library(nephro)
 
 ds <- readRDS(file='ds.Rds')
+ds_base <- ds %>% 
+  filter(VN == 6) %>% 
+  filter(UDBP < 2000)
 source('R/functions.r')
 ```
 
@@ -51,7 +54,7 @@ source('R/functions.r')
 
 *Participants* Data for the present project were derived from the longitudinal Prospective Metabolism and Islet Cell Evaluation (PROMISE) cohort study;  only baseline measures were used (23). Methods for PROMISE have been previously published. In brief, 736 men and women over the age of 30 who were at high risk for type 2 diabetes based on risk factors including obesity, hypertension, family history, and gestational diabetes or birth of a macrosomic infant were recruited from Toronto and London, Ontario. Ethnic groups include European-decent, Latin-American, South Asian, and others. Subjects are contacted annually by telephone to collect data on major health events, and follow-up clinical exams occur every 3 years where anthropometric measurements, lifestyle questionnaires, oral glucose tolerance test (OGTT), and blood and spot urine samples are collected. All participants provided written informed consent.
 
-*Biomarkers* The biomarkers examined for this study include blood glucose at fasting and 2 hours post-OGTT, serum and urinary creatinine, urinary VDBP, and albumin. Urinary VDBP concentrations were determined in Dr. David Cole’s laboratory at Sunnybrook Research Institute and were assayed by manual ELISA kit following manufacturer instructions. The lower detection limit of the assay was 1.23 ng/mL and the upper detection limit was 60 ng/mL. All samples were diluted 1:5 prior to the assay; samples with undetectable concentrations at 1:5 dilution were assayed again undiluted. As plasma concentrations of VDBP is 10000X higher than urine concentration, hemolyzed samples were excluded from analysis. All other biomarkers were measured following standard laboratory procedures. Serum creatinine was used to estimate glomerular filtration rate (eGFR) as a measure of kidney function using the Chronic Kidney Disease Epidemiology Collaboration equation (24). Urinary albumin and creatinine was used to determine the microalbumin-to-creatinine ratio (MCR), a clinical measure of microalbuminuria (25).
+*Biomarkers* The biomarkers examined for this study include blood glucose at fasting and 2 hours post-OGTT, serum and urinary creatinine, urinary VDBP, and albumin. Urinary VDBP concentrations were determined in Dr. David Cole’s laboratory at Sunnybrook Research Institute and were assayed by manual ELISA kit following manufacturer instructions. The lower detection limit of the assay was 1.23 ng/mL and the upper detection limit was 60 ng/mL. All samples were diluted 1:5 prior to the assay; samples with undetectable concentrations at 1:5 dilution were assayed again undiluted. As plasma concentrations of VDBP is 10000X higher than urine concentration, hemolyzed samples were excluded from analysis. All other biomarkers were measured following standard laboratory procedures. Serum 25(OH)D was measured using DiaSourin Total Assay on Chemiluminescence. Serum creatinine was used to estimate glomerular filtration rate (eGFR) as a measure of kidney function using the Chronic Kidney Disease Epidemiology Collaboration equation (24). Urinary albumin and creatinine was used to determine the microalbumin-to-creatinine ratio (MCR), a clinical measure of microalbuminuria (25).
 
 *Statistical methods* Statistical analysis was performed using R (version 3.2.5; The R Foundation for Statistical Computing, Vienna, Austria). Urinary VDBP was normalized using urinary creatinine levels to account for differences in urine volume between subjects. The data was transformed using natural log to minimize the influence of extreme observations and improve discrimination of . Natural log transformations of variables were used to ensure normality assumptions were satisfied, and when necessary, non-parametric tests were used. Continuous data were reported as mean ± standard deviation or as median and interquartile range for non-normally distributed variables. Independent variables–eGFR, albuminuria, and glucose tolerance–were categorized based on severity of disease using clinically established cut-offs (Appendix A). The main dependent variable in this study was urinary concentration of VDBP. For univariate analysis, analysis of variance (ANOVA) tests were used to ascertain differences between multiple groups, whereas chi-squared tests for independence were used to assess differences between nominal data. Spearman’s rank correlation coefficients were assessed as measures of correlation between continuous variables of interest. For all analyses, statistical significance was defined as p<0.05.
 
@@ -62,4 +65,68 @@ source('R/functions.r')
 ds %>% 
   table_baseline('fVN')
 ```
+
+```{r}
+ds_base %>% 
+  scatter_plot(ds_base$CRP, ds_base$UDBP,
+               'C-Reactive Protein (mg/L)', "Urinary Vitamin D Binding Protein (ng/mL)") +
+  geom_smooth(method=lm)
+
+cor.test(ds_base$CRP, ds_base$UDBP, method = "spearman", exact = FALSE)
+```
+
+Looking at the change in uVDBP concentrations over time:
+(1) Diabetic status
+```{r}
+ds %>% 
+  select(dm_status, fVN, UDBP) %>% 
+  na.omit() %>% 
+  ggplot(aes(x = dm_status, y = UDBP, fill = dm_status)) +
+  stat_summary(fun.y = mean, geom = "bar", position = position_dodge(1)) +
+  scale_fill_discrete(name = "Glycemic Status") +
+  theme(axis.text.x = element_blank(), 
+        strip.background = element_blank(),
+        axis.ticks.x = element_blank()) +
+  stat_summary(fun.data = mean_se, geom="errorbar",
+               color = "grey80", position = position_dodge(1), width = 0.2) +
+  xlab("Visit Number") +
+  ylab("Urinary vitamin D binding protein (ng/mL)") +
+  facet_grid(~fVN, switch = "x")
+```
+ (2) eGFR
+```{r}
+ds %>% 
+  select(eGFR_status, fVN, UDBP) %>% 
+  na.omit() %>% 
+  ggplot(aes(x = eGFR_status, y = UDBP, fill = eGFR_status)) +
+  stat_summary(fun.y = mean, geom = "bar", position = position_dodge(1)) +
+  scale_fill_discrete(name = "eGFR Status") +
+  theme(axis.text.x = element_blank(), 
+        strip.background = element_blank(),
+        axis.ticks.x = element_blank()) +
+  stat_summary(fun.data = mean_se, geom="errorbar",
+               color = "grey80", position = position_dodge(1), width = 0.2) +
+  xlab("Visit Number") +
+  ylab("Urinary vitamin D binding protein (ng/mL)") +
+  facet_grid(~fVN, switch = "x")
+```
+
+(3) MCR
+```{r}
+ds %>% 
+  select(mcr_status, fVN, UDBP) %>% 
+  na.omit() %>% 
+  ggplot(aes(x = mcr_status, y = UDBP, fill = mcr_status)) +
+  stat_summary(fun.y = mean, geom = "bar", position = position_dodge(1)) +
+  scale_fill_discrete(name = "MCR Status") +
+  theme(axis.text.x = element_blank(), 
+        strip.background = element_blank(),
+        axis.ticks.x = element_blank()) +
+  stat_summary(fun.data = mean_se, geom="errorbar",
+               color = "grey80", position = position_dodge(1), width = 0.2) +
+  xlab("Visit Number") +
+  ylab("Urinary vitamin D binding protein (ng/mL)") +
+  facet_grid(~fVN, switch = "x")
+```
+
 

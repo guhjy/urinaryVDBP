@@ -2,12 +2,24 @@
 ## Load and Clean Data [https://bitbucket.org/promise-cohort/promise]
 #######################################################################################
 
+library(nephro)
+library(carpenter)
+library(ggplot2)
+library(knitr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(pander)
+library(captioner)
+library(knitr)
+
+
 # No need to run unless data has changed
 
 ds_init <- PROMISE::PROMISE_data %>%
   filter(UDBP < 50000)
 
-ds_clean <- ds_init %>% 
+ds <- ds_init %>% 
   mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62, UDBP),
          Ethnicity = as.character(Ethnicity),
          isAfrican = ifelse(Ethnicity == 'African', 1, 0), 
@@ -43,6 +55,10 @@ ds_clean <- ds_init %>%
                             levels=c('Normal', 'Mild', 'Moderate', 'Hyperfiltration'), 
                             ordered=TRUE)) %>%
   arrange(eGFR_status) %>% 
+  mutate(mcr_status = factor(mcr_status,
+                             levels = c("Normal", "Microalbuminuria", "Macroalbuminuria"),
+                             ordered=TRUE)) %>% 
+  arrange(mcr_status) %>% 
   mutate(dm_status=factor(dm_status, 
                           levels=c('NGT', 'Prediabetes', 'DM'), 
                           ordered=TRUE)) %>%
@@ -50,21 +66,14 @@ ds_clean <- ds_init %>%
   mutate(UDBP_status=factor(UDBP_status, 
                             levels=c('Undetected', 'Low', 'Normal', 'High'), 
                             ordered=TRUE)) %>%
-  arrange(UDBP_status)
-  
-ds <- ds_clean %>% 
+  arrange(UDBP_status) %>% 
   select(SID, BMI, Waist, Age, Sex, Ethnicity, VN, fVN, 
        Glucose0, Glucose120, DM, IFG, IGT, 
        dm_status, mcr_status, eGFR_status, UDBP_status,
        MicroalbCreatRatio, eGFR, UrineMicroalbumin, UrineCreatinine, Creatinine,  
        UDBP, udbpCrRatio, VitaminD,
        MeanArtPressure, Systolic, Diastolic, PTH, ALT,
-       CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs)
-
-# Subjects with measurements at all time points
-ds_complete <- ds_clean %>% 
-  select(UDBP, MicroalbCreatRatio, eGFR) %>% 
-  na.omit()
+       CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs, CRP)
 
 # UDBP with only three groups (low group not sub-divided)
 ds_UDBP3 <- ds %>% 
@@ -77,4 +86,3 @@ ds_UDBP3 <- ds %>%
 
 # Save the data
 saveRDS(ds, file='ds.Rds')
-saveRDS(ds_clean, file='ds_clean.Rds')

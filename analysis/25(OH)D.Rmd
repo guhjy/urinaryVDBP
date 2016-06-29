@@ -5,7 +5,7 @@ date: "May 13, 2016"
 # bibliography: bibliography.bib
 output: 
   word_document:
-    reference_docx: docx_template.docx
+    reference_docx: ../docx_template.docx
 ---
 
 ```{r knit_setup, include=FALSE}
@@ -23,11 +23,35 @@ library(plyr)
 library(dplyr)
 library(tidyr)
 library(pander)
+library(captioner)
+library(knitr)
+
+tbls <- captioner(prefix = 'TABLE')
+figs <- captioner(prefix = 'FIGURE')
 
 ds_clean <- readRDS(file="ds_clean.Rds")
 ds <- readRDS(file='ds.Rds')
+ds_base <- ds %>% 
+  filter(VN == 1)
 source('R/functions.r')
 ```
+
+```{r fig-label}
+fig_egfrPlot <- figs(name='eGFR_vitD',
+     caption="Relationship between estimated glomerular filtration rate and serum 25(OH)D concentrations.")
+
+fig_mcrBox <- figs(name='mcrStat_vitD',
+     caption="Association between microalbumin-to-creatinine ratio clinical categories and serum 25(OH)D concentrations.")
+
+fig_mcrPlot <- figs(name="mcr_vitD",
+                    caption="Relationship between microalbumin-to-creatinine ratio and serum 25(OH)D concentrations.")
+```
+
+```{r table-label}
+tbl_mcrProg <- tbls(name='mcrProgress',
+                    caption="Progression of kidney dysfunction in subjects with high MCR values.")
+```
+
 ## Purpose
 
 The aim of this document is to explore how serum 25(OH)D levels relate to other variables. This exploration of the data may lead to better understanding of the interaction of urinary vitamin D binding protein and serum levels of vitamin D.
@@ -38,37 +62,77 @@ In a paper by Kalousova et al. (2015), it was found that plasma vitamin D levels
 
 ## Estimated Glomerular Filtration Rate
 
-In the PROMISE cohort at baseline, it appears that there is a significant relationship between estimated glomerular filtration (eGFR) rate and serum levels of 25(OH)D. Although the Spearman's coefficient is negative (r = -0.19), a LOESS curve of the data shows a somewhat parabolic relationship. Subjects with eGFR classified as normal (90 - 125 ml/min/1.73m^2, according to National Kidney Foundation guidelines) tended to have higher levels of 25(OH)D, but subjects outside that range tended to have lower levels of serum 25(OH)D.
-
-```{r eGFR}
-cor.test(ds$eGFR, ds$VitaminD, method='spearman', exact=FALSE)
-
-ds %>% 
-  scatter_plot(ds$eGFR, ds$VitaminD, 
+```{r eGFRPlot, fig.cap=fig_egfrPlot}
+ds_base %>% 
+  scatter_plot(ds_base$eGFR, ds_base$VitaminD, 
                'Estimated Glomerular Filtration Rate (ml/min/1.73m^2)', 
                'Serum 25(OH)D (nmol/L)') +
   geom_smooth(se=TRUE, colour='black')
+
+eGFR_cor_pvalue <- cor.test(ds_base$eGFR, ds_base$VitaminD, method='spearman', 
+                       exact=FALSE)$p.value %>% 
+  round(4)
 ```
+
+In the PROMISE cohort at baseline, it appears that there is a significant relationship between estimated glomerular filtration (eGFR) rate and serum levels of 25(OH)D. Although the Spearman's coefficient is negative (r = `r cor(ds_base$eGFR, ds_base$VitaminD, use="complete.obs") %>% round(2)`, *p* = `r eGFR_cor_pvalue`), a LOESS curve of the data shows a somewhat parabolic relationship. Subjects with eGFR classified as normal (90 - 125 ml/min/1.73m^2, according to National Kidney Foundation guidelines) tended to have higher levels of 25(OH)D, but subjects outside that range tended to have lower levels of serum 25(OH)D.
 
 ## Microalbuminuria
-```{r albumin}
-cor.test(ds$MicroalbCreatRatio, ds$VitaminD, method='spearman', exact=FALSE)
 
-box.plot(ds$mcr_status, ds$VitaminD, 
-             'Microalbuminuria', 
-             'Serum 25(OH)D (nmol/L)')
 
+```{r mcrBox, fig.cap=fig_mcrBox}
+ds_base %>% 
+  box_plot(ds_base$mcr_status, ds_base$VitaminD, 
+               'Microalbuminuria', 
+               'Serum 25(OH)D (nmol/L)')
+
+mcr_anova <- summary(aov(ds$Glucose120~ds$eGFR_status))
 ```
+The microalbumin-to-creatinine ratio (MCR) was also examined as a measure of kidney function.In 
+An one-way analysis of variance (ANOVA) showed that there was no significant differences between different microalbumin-to-creatinine ratio cut-offs and serum 25(OH)D status, p = `r mcr_anova[[1]][["Pr(>F)"]][[1]] %>% round(3)`
+
+MCR was further examined as a continuous variable. Due to the skewed nature of
+
+```{r mcrPlot, fig.cap=fig_mcrPlot}
+ds_base %>% 
+  scatter_plot(ds_base$MicroalbCreatRatio, ds_base$VitaminD,
+               'log Microalbumin-to-Creatinine Ratio',
+               'log Serum 25(OH)D (nmol/L)')
+
+mcr_cor_pvalue <- cor.test(ds_base$MicroalbCreatRatio, ds_base$VitaminD, 
+                           method='spearman', exact=FALSE)$p.value %>% 
+  round(4)
+```
+
+It was interesting to note that there were very few subjects with MCR greater than 30 at baseline, which suggests significant protein leakage through the kidneys (n = `r ds_base %>% filter(MicroalbCreatRatio > 30) %>% summarise(n=n())`). However, it must be noted that some individuals showed MCR greater than 100 at subsequent visits (n = `r ds %>% filter(MicroalbCreatRatio > 100) %>% summarise(n=n())`). According to the National Kidney Federation, MCR values over 100 are especially a cause for concern. The table below shows the progression of kidney dysfunction over visit numbers. In general, subjects's MCR increased over time.
+
+```{r}
+mcr_over100 <- ds_clean %>% 
+  filter(MicroalbCreatRatio > 30) %>% 
+  select(SID) %>% 
+  .[[1]]
+
+ds_clean %>% 
+  filter(SID %in% mcr_over100) %>% 
+  select(SID, VN, MicroalbCreatRatio, eGFR, MeanArtPressure) %>% 
+  arrange(SID, VN) %>%
+  knitr::kable()
+```
+# Urinary VDBP and Serum 25(OH)D
+
+## Subcategorization
+
 
 # PTH-Calcium Axis
 
 ```{r PTH-ratio}
+ds %>%
 scatter_plot(ds$PTH, ds$CaCrRatio,
-             'PTH', 'Urinary Calcium:Creatinine') + 
+             'PTH', 'Urinary Calcium:Creatinine') +
   geom_smooth(method=lm, se=TRUE, colour='black')
 ```
 
 ```{r}
+ds %>%
 scatter_plot(ds$UDBP_cr_ln, ds$CaCrRatio,
              'log UDBP:Creatinine', 'Urinary Calcium:Creatinine') +
   geom_smooth(colour='black')
@@ -80,7 +144,8 @@ scatter_plot(ds$UDBP_cr_ln, ds$CaCrRatio,
 In accordance with previous literature, subjects who have diabetes (DM) tend to have a worse vitamin D status (*p*=0.005). It was also observed that subjects who are classified as prediabetic also have low 25(OH)D levels. No significant differences were found between 25(OH)D concentrations in those with prediabetes and normal glucose tolerance (NGT) (*p*=0.78) likely due to the smaller sample size in the prediabetes population (n=38), but there was a significant difference observed between subjects with prediabetes and diabetes (*p*=0.04), as well as NGT and diabetes (*p*=0.005).
 
 ```{r dm.status}
-bar.plot(ds$dm_status, ds$VitaminD, 
+ds %>%
+bar_plot(ds$dm_status, ds$VitaminD,
          'Diabetic Status', 'Serum 25(OH)D (nmol/L)')
 
 anova <- aov(ds$VitaminD~ds$dm_status)
