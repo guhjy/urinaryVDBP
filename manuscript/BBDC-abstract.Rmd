@@ -1,0 +1,189 @@
+---
+title: Urinary excretion of vitamin D binidng protein across varying degrees of kidney
+  dysfunction and dysglycemia
+author: "WINDY WANG"
+date: "July 6, 2016"
+# bibliography: bibliography.bib
+output:
+ word_document
+    # reference_docx: ../docx_template.docx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir = '../')
+```
+
+```{r package}
+library(nephro)
+library(carpenter)
+library(ggplot2)
+library(knitr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(pander)
+library(captioner)
+library(knitr)
+library(extrafont)
+```
+
+```{r data}
+ds <- readRDS(file='../ds.Rds')
+source('../R/functions.r')
+```
+
+# Graphs
+
+Boxplot: eGFR categories
+
+```{r box-eGFR}
+ds_base <- ds %>% 
+  filter(VN == 1)
+
+ds %>% 
+  filter(VN == 1) %>% 
+  filter(UDBP < 5000, CRP < 10) %>% 
+  select(eGFR_status, UDBP) %>% 
+  na.omit() %>% 
+  box_plot2("eGFR_status", "UDBP", 
+            "Estimated GFR (ml/min/1.73m^2)",
+            "Urinary vitamin D binding protein (ng/mL)") +
+  scale_x_discrete(labels = paste(levels(ds_base$eGFR_status), 
+                                    "\n(n=", table(ds_base$eGFR_status), ")", sep = ""))
+
+rm(ds_base)
+```
+
+Scatterplot: eGFR categories
+```{r scatter-eGFR}
+ds %>% 
+  filter(VN == 1) %>% 
+  filter(UDBP < 5000) %>% 
+  ggplot(aes_string("eGFR", "log(UDBP/UrineCreatinine)")) +
+  geom_point(mapping = aes(colour = CRP))
+  
+  scatter_plot("eGFR", "log(UDBP/UrineCreatinine)",
+               "Estimated GFR (ml/min/1.73m^2)",
+               "log UDBP:Creatinine") +
+  geom_smooth(colour = "black")
+```
+
+
+Boxplot: MCR categories
+```{r}
+ds %>% 
+  filter(VN == 1) %>% 
+  filter(UDBP < 5000) %>% 
+  select(mcr_status, UDBP) %>% 
+  na.omit() %>% 
+  box_plot2("mcr_status", "UDBP", 
+            "Albuminuria",
+            "Urinary vitamin D binding protein (ng/mL)") +
+  scale_x_discrete(labels = paste(levels(ds_base$mcr_status), 
+                                    "\n(N=", table(ds_base$mcr_status), ")", sep = ""))
+```
+
+Scatterplot: MCR categories
+```{r}
+ds %>% 
+  filter(VN == 1) %>% 
+  filter(UDBP < 5000) %>% 
+  select(MicroalbCreatRatio, UDBP, UrineCreatinine) %>% 
+  na.omit() %>% 
+  scatter_plot("log(MicroalbCreatRatio)", "log(UDBP/UrineCreatinine)",
+               "log Microalbumin:Creatinine Ratio",
+               "log UDBP:Creatinine") +
+  geom_smooth(colour = "black")
+```
+
+Boxplot: DM categories
+```{r}
+ds %>% 
+  filter(VN == 1) %>% 
+  filter(UDBP < 5000) %>% 
+  select(dm_status, UDBP) %>% 
+  na.omit() %>% 
+  box_plot2("dm_status", "UDBP", 
+            "Glycemic Status",
+            "Urinary vitamin D binding protein (ng/mL)") +
+  scale_x_discrete(labels = paste(levels(ds_base$dm_status), 
+                                  "\n(N=", table(ds_base$dm_status), ")", sep = ""))
+```
+
+Scatterplot: Fasting glucose
+```{r}
+ds %>% 
+  filter(VN == 1) %>% 
+  filter(UDBP < 5000) %>% 
+  select(Glucose0, UDBP, UrineCreatinine) %>% 
+  na.omit() %>% 
+  scatter_plot("Glucose0", "log(UDBP/UrineCreatinine)",
+               "Fasting Glucose (mmol/L)",
+               "log UDBP:Creatinine") +
+  geom_smooth(colour = "black")
+```
+
+Scatterplot: 2h OGTT
+```{r}
+ds %>% 
+  filter(VN == 1) %>% 
+  filter(UDBP < 5000) %>% 
+  select(Glucose120, UDBP, UrineCreatinine) %>% 
+  na.omit() %>% 
+  scatter_plot("Glucose120", "log(UDBP/UrineCreatinine)",
+               "2h Post-OGTT Blood Glucose (mmol/L)",
+               "log UDBP:Creatinine") +
+  geom_smooth(colour = "black")
+```
+
+Scatterplot: 25(OH)D
+```{r}
+ds %>% 
+  filter(VN == 1) %>% 
+  filter(UDBP < 5000) %>% 
+  scatter_plot("log(UDBP/UrineCreatinine)", "VitaminD",
+               "log UDBP:Creatinine",
+               "Serum 25(OH)D (nmol/L)") +
+  geom_smooth(method = "lm", colour = "black")
+
+cor.test(ds$VitaminD, ds$UDBP, method = "spearman", exact = FALSE)
+```
+
+Subgroup analysis: 25(OH)D and UDBP
+```{r}
+ds_sub <- ds %>% 
+  filter(VN == 1) %>% 
+  filter(UDBP < 5000) %>% 
+  filter(CRP < 10, ALT < 56 | ALT > 7)
+
+ds_sub %>% 
+  scatter_plot("log(UDBP/UrineCreatinine)", "VitaminD",
+               "log UDBP:Creatinine",
+               "Serum 25(OH)D (nmol/L)") +
+  geom_smooth(method = "lm", colour = "black")
+
+cor.test(ds_sub$VitaminD, ds_sub$UDBP, method='spearman', exact=FALSE)
+```
+
+Medication
+```{r}
+ds_visit <- ds %>% 
+  filter(fVN == "Baseline", UDBP < 5000, CRP < 10) %>% 
+  select(fMedsBP, UDBP, UrineCreatinine, dm_status) %>% 
+  na.omit() %>% 
+  group_by(fMedsBP, dm_status) %>% 
+  mutate(n = ifelse(row_number()==n(), paste("n =", n()), NA))
+
+ds_visit %>% 
+  box_plot2("fMedsBP", "log(UDBP/UrineCreatinine)",
+            "Blood Pressure Medication", "log uVDBP:Creatinine") +
+  # scale_x_discrete(labels = paste(levels(ds_visit$fMedsBloodPressure),
+  #                                 "\n(n=", table(ds_visit$eGFR_status), ")", sep = "")) +
+  facet_grid(~dm_status, switch = "x") +
+  geom_text(aes(label = n), y = -4, size = 3, colour = "grey40")
+
+rm(ds_visit)
+```
+
+

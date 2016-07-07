@@ -10,6 +10,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir = '../')
 
 library(ggplot2)
 library(knitr)
@@ -22,7 +23,6 @@ tbls <- captioner(prefix = 'Table')
 figs <- captioner(prefix = 'Figure')
 
 ds <- readRDS(file='../ds.Rds')
-ds_complete <- readRDS(file="../ds_complete.Rds")
 source('../R/functions.r')
 ```
 ```{r table_names}
@@ -42,4 +42,65 @@ table_baseline(ds, 'fVN', tbl_char)
 ```{r sub_char_all}
 table_baseline(ds_complete, 'fVN', tbl_char_all)
 ```
+
+Mean urinary vitamin D binding protein concentrations across eGFR categories at different time points.
+```{r bar}
+ds %>% 
+  ggplot(aes(x = fVN, y = UDBP, fill = fVN)) +
+  stat_summary(fun.y = mean, geom = "bar", position = position_dodge(1)) +
+  scale_fill_discrete(name = "Visit Number") +
+  theme(strip.background = element_blank(),
+        legend.position = "none") +
+  stat_summary(fun.data = mean_se, geom = "errorbar", 
+               color = "grey80", position = position_dodge(1), width = 0.2) +
+  xlab("Visit Number") +
+  ylab("Urinary vitamin D binding protein (ng/mL)") +
+  scale_x_discrete(labels = paste(levels(ds$fVN),
+                                "\n(N=", table(ds$fVN), ")", sep = ""))
+```
+
+```{r boxplot}
+ds %>% 
+  filter(UDBP < 5000) %>% 
+  ggplot(aes_string(x = "fVN", y = "UDBP")) +
+  geom_boxplot(aes_string(colour = "fVN", fill = "fVN")) +
+  stat_summary(geom = "crossbar", width = 0.65, fatten = 0, color = "white",
+               fun.data = function(x){
+                 return(c(y = median(x), ymin = median(x), ymax = median(x)))
+               }) +
+  theme_minimal() +
+  theme(legend.position = "none",
+        panel.grid.major.x = element_blank(), 
+        axis.line.y = element_blank(),
+        axis.text.y = element_text(colour = "grey20"),
+        axis.ticks.y = element_line(colour = "grey")) +
+  xlab("Visit Number") +
+  ylab("Urinary vitamin D binding protein (ng/mL)") +
+  scale_x_discrete(labels = paste(levels(ds$fVN),
+                              "\n(n=", table(ds$fVN), ")", sep = ""))
+```
+
+
+Mean urinary vitamin D binding protein concentrations across eGFR/MCR/DM categories at different time points.
+```{r}
+ds_n <- ds %>% 
+  summarise(n=n())
+
+ds %>% 
+  select(eGFR_status, fVN, UDBP) %>% 
+  na.omit() %>% 
+  ggplot(aes(x = eGFR_status, y = UDBP, fill = eGFR_status)) +
+  stat_summary(fun.y = mean, geom = "bar", position = position_dodge(1)) +
+  scale_fill_discrete(name = "Glycemic Status") +
+  theme(axis.text.x = element_blank(), 
+        strip.background = element_blank(),
+        axis.ticks.x = element_blank()) +
+  stat_summary(fun.data = mean_se, geom="errorbar",
+               color = "grey80", position = position_dodge(1), width = 0.2) +
+  xlab("Visit Number") +
+  ylab("Urinary vitamin D binding protein (ng/mL)") +
+  facet_grid(~fVN, switch = "x")
+```
+
+
 

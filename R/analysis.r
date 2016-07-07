@@ -31,7 +31,11 @@ ds_temp <- ds %>%
   filter(SID == 3115) %>% 
   arrange(VN)
 
-pandoc.table(ds_temp, style="rmarkdown")
+ds2 <- ds %>% 
+  select(fVN, eGFR_status, CRP, fMedsBP) %>% 
+  na.omit() %>% 
+  filter(fVN == 6, eGFR_status == "Hyperfiltration", CRP < 10) %>% 
+  summarise(n = n())
 
 # Check normal distribution
 histo_plot(ds$UrinaryCalcium, 0.1, 'UDBP')

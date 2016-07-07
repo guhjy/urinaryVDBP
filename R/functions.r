@@ -105,6 +105,7 @@ table_baseline <- function(data, byfactor = '', caption) {
 scatter_plot = function(data, xvar, yvar, xlab='', ylab='') {
   ggplot(data, aes_string(x=xvar, y=yvar)) +
     geom_point() + #mapping=aes(color=mcr_status)
+    theme(panel.background = element_blank()) +
     xlab(xlab) +
     ylab(ylab)
 }
@@ -120,6 +121,30 @@ scatter_plot = function(data, xvar, yvar, xlab='', ylab='') {
 
 
 ## Boxplot ##
+box_plot2 <- function(data, xvar, yvar, xlab="", ylab="") {
+  ggplot(data, aes_string(x = xvar, y = yvar)) +
+    geom_boxplot(aes_string(colour = xvar, fill = xvar)) +
+    stat_summary(geom = "crossbar", width = 0.65, fatten = 0, color = "white",
+                 fun.data = function(x){
+                   return(c(y = median(x), ymin = median(x), ymax = median(x)))
+                 }) +
+    theme_minimal() +
+    theme(legend.position = "none",
+          panel.grid.major.x = element_blank(), 
+          axis.line.y = element_blank(),
+          axis.text.y = element_text(colour = "grey"),
+          axis.ticks.y = element_line(colour = "grey"),
+          axis.text.x = element_text(colour = "grey 30"),
+          axis.title = element_text(size = 10)) +
+    xlab(xlab) +
+    ylab(ylab)
+}
+
+# scale_x_discrete(labels = paste(levels(ds_base$xvar), 
+#                                 "\n(N=", table(ds_base$xvar), ")", sep = "")) +
+
+
+
 box_plot = function(data, xvar, yvar, xlab='', ylab='') {
   ggplot(data, aes(x=xvar, y=yvar)) +
     geom_boxplot() +
