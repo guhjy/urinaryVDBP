@@ -12,7 +12,6 @@ library(tidyr)
 library(pander)
 library(captioner)
 library(knitr)
-library(reshape2)
 
 
 # No need to run unless data has changed

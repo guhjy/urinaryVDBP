@@ -50,7 +50,11 @@ fig_mcrPlot <- figs(name="mcr_vitD",
 ```{r table-label}
 tbl_mcrProg <- tbls(name='mcrProgress',
                     caption="Progression of kidney dysfunction in subjects with high MCR values.")
+
+cite_t <- pryr::partial(tbls, display = "cite")
+# `r cite_t('mcrProgress')`
 ```
+
 
 ## Purpose
 
@@ -115,7 +119,7 @@ ds_clean %>%
   filter(SID %in% mcr_over100) %>% 
   select(SID, VN, MicroalbCreatRatio, eGFR, MeanArtPressure) %>% 
   arrange(SID, VN) %>%
-  knitr::kable()
+  knitr::kable(caption = tb1_mcrProg)
 ```
 # Urinary VDBP and Serum 25(OH)D
 

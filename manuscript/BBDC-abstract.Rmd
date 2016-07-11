@@ -25,12 +25,11 @@ library(tidyr)
 library(pander)
 library(captioner)
 library(knitr)
-library(extrafont)
 ```
 
 ```{r data}
-ds <- readRDS(file='../ds.Rds')
-source('../R/functions.r')
+ds <- readRDS(file='data/ds.Rds')
+source('R/functions.r')
 ```
 
 # Graphs
@@ -39,76 +38,120 @@ Boxplot: eGFR categories
 
 ```{r box-eGFR}
 ds_base <- ds %>% 
-  filter(VN == 1)
+  filter(VN == 1, UDBP < 5000, CRP < 10)
 
-ds %>% 
-  filter(VN == 1) %>% 
-  filter(UDBP < 5000, CRP < 10) %>% 
-  select(eGFR_status, UDBP) %>% 
+ds_base %>% 
+  select(eGFR_status, UDBP, UrineCreatinine) %>% 
   na.omit() %>% 
-  box_plot2("eGFR_status", "UDBP", 
+  box_plot2("eGFR_status", "log(UDBP/UrineCreatinine)", 
             "Estimated GFR (ml/min/1.73m^2)",
-            "Urinary vitamin D binding protein (ng/mL)") +
+            "log uVDBP:Creatinine") +
   scale_x_discrete(labels = paste(levels(ds_base$eGFR_status), 
                                     "\n(n=", table(ds_base$eGFR_status), ")", sep = ""))
 
+anova <- aov(ds_base$UDBP~ds_base$eGFR_status)
+summary(anova)
+TukeyHSD(anova)
+
+kruskal.test(ds_base$UDBP ~ ds_base$eGFR_status) 
+
 rm(ds_base)
+rm(anova)
 ```
 
 Scatterplot: eGFR categories
 ```{r scatter-eGFR}
-ds %>% 
-  filter(VN == 1) %>% 
-  filter(UDBP < 5000) %>% 
-  ggplot(aes_string("eGFR", "log(UDBP/UrineCreatinine)")) +
-  geom_point(mapping = aes(colour = CRP))
+ds_base <- ds %>% 
+  filter(VN == 1, UDBP < 5000, CRP < 10)
+
+ds_base %>% 
+  ggplot(aes_string("log(eGFR)", "log(UDBP/UrineCreatinine)")) +
+  geom_point() + #mapping = aes(colour = CRP)
+  xlab("log estimated GFR") + 
+  ylab("log UDBP:Creatinine") +
+  geom_smooth(method = lm, colour = "black") +
+  theme(panel.background = element_blank())
   
-  scatter_plot("eGFR", "log(UDBP/UrineCreatinine)",
-               "Estimated GFR (ml/min/1.73m^2)",
-               "log UDBP:Creatinine") +
-  geom_smooth(colour = "black")
+cor.test(ds_base$eGFR, ds_base$udbpCrRatio, method = "spearman", exact = FALSE)
+
+rm(ds_base)
 ```
 
 
 Boxplot: MCR categories
-```{r}
-ds %>% 
-  filter(VN == 1) %>% 
-  filter(UDBP < 5000) %>% 
-  select(mcr_status, UDBP) %>% 
+```{r box-mcr}
+ds_base <- ds %>% 
+  filter(VN == 1, UDBP < 5000, CRP < 10)
+
+ds_mcr <- ds %>% 
+  mutate(mcr_cat = ifelse(mcr_status == "Normal", "Normal", "Albuminuria")) %>% 
+  mutate(mcr_cat = factor(mcr_cat,
+                          levels = c("Normal", "Albuminuria"),
+                          ordered = TRUE)) %>% 
+  filter(VN == 1, UDBP < 5000, CRP < 10)
+
+ds_mcr %>% 
+  filter(UDBP < 5000, CRP < 10) %>% 
+  select(mcr_cat, UDBP, UrineCreatinine) %>% 
   na.omit() %>% 
-  box_plot2("mcr_status", "UDBP", 
+  box_plot2("mcr_cat", "log(UDBP/UrineCreatinine)", 
             "Albuminuria",
-            "Urinary vitamin D binding protein (ng/mL)") +
-  scale_x_discrete(labels = paste(levels(ds_base$mcr_status), 
-                                    "\n(N=", table(ds_base$mcr_status), ")", sep = ""))
+            "log uVDBP:Creatinine") +
+  scale_x_discrete(labels = paste(levels(ds_mcr$mcr_cat), 
+                                    "\n(n=", table(ds_mcr$mcr_cat), ")", sep = ""))
+
+anova <- aov(ds_mcr$UDBP~ds_mcr$mcr_status)
+summary(anova)
+TukeyHSD(anova)
+
+kruskal.test(ds_base$UDBP ~ ds_base$mcr_status) 
+
+rm(ds_base)
+rm(ds_mcr)
+rm(anova)
 ```
 
 Scatterplot: MCR categories
-```{r}
-ds %>% 
-  filter(VN == 1) %>% 
-  filter(UDBP < 5000) %>% 
+```{r scatter-mcr}
+ds_base <- ds %>% 
+  filter(VN == 1, UDBP < 5000, CRP < 10)
+
+ds_base %>% 
   select(MicroalbCreatRatio, UDBP, UrineCreatinine) %>% 
   na.omit() %>% 
   scatter_plot("log(MicroalbCreatRatio)", "log(UDBP/UrineCreatinine)",
                "log Microalbumin:Creatinine Ratio",
                "log UDBP:Creatinine") +
-  geom_smooth(colour = "black")
+  geom_smooth(method = lm, colour = "black")
+
+cor.test(ds_base$MicroalbCreatRatio, ds_base$udbpCrRatio, 
+         method = "spearman", exact = FALSE)
+
+rm(ds_base)
 ```
 
 Boxplot: DM categories
-```{r}
-ds %>% 
-  filter(VN == 1) %>% 
-  filter(UDBP < 5000) %>% 
-  select(dm_status, UDBP) %>% 
+```{r box-DM}
+ds_base <- ds %>% 
+  filter(VN == 1, UDBP < 5000, CRP < 10)
+
+ds_base %>% 
+  select(dm_status, UDBP, UrineCreatinine) %>% 
   na.omit() %>% 
-  box_plot2("dm_status", "UDBP", 
+  box_plot2("dm_status", "log(UDBP/UrineCreatinine)", 
             "Glycemic Status",
-            "Urinary vitamin D binding protein (ng/mL)") +
+            "log uVDBP:Creatinine") +
   scale_x_discrete(labels = paste(levels(ds_base$dm_status), 
-                                  "\n(N=", table(ds_base$dm_status), ")", sep = ""))
+                                  "\n(n=", table(ds_base$dm_status), ")", sep = ""))
+
+anova <- aov(ds_base$udbpCrRatio~ds_base$dm_status)
+summary(anova)
+TukeyHSD(anova)
+
+# kruskal.test(ds_base$UDBP ~ ds_base$mcr_status) 
+
+rm(anova)
+rm(ds_base)
 ```
 
 Scatterplot: Fasting glucose
@@ -138,16 +181,19 @@ ds %>%
 ```
 
 Scatterplot: 25(OH)D
-```{r}
-ds %>% 
-  filter(VN == 1) %>% 
-  filter(UDBP < 5000) %>% 
-  scatter_plot("log(UDBP/UrineCreatinine)", "VitaminD",
-               "log UDBP:Creatinine",
-               "Serum 25(OH)D (nmol/L)") +
-  geom_smooth(method = "lm", colour = "black")
+```{r scatter-vitD}
+ds_base <- ds %>% 
+  filter(VN == 1, UDBP < 5000, CRP < 10)
 
-cor.test(ds$VitaminD, ds$UDBP, method = "spearman", exact = FALSE)
+ds_base %>% 
+  scatter_plot("log(UDBP/UrineCreatinine)", "log(VitaminD)",
+               "log UDBP:Creatinine",
+               "log serum 25(OH)D") +
+  geom_smooth(method = lm, colour = "black")
+
+cor.test(ds_base$VitaminD, ds_base$udbpCrRatio, method = "spearman", exact = FALSE)
+
+rm(ds_base)
 ```
 
 Subgroup analysis: 25(OH)D and UDBP
