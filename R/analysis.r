@@ -16,11 +16,12 @@ table(ds$eGFR_status)
 ## Check n of multiple variables ##
 ds %>%
   tbl_df() %>%
+  filter(VN == 1) %>% 
   select(SID, Age, Sex, Ethnicity, BMI, Waist, 
          UrineMicroalbumin, UrineCreatinine, MicroalbCreatRatio, eGFR,
          VitaminD, Creatinine, PTH,
          MeanArtPressure, Systolic, Diastolic,
-         Glucose0, Glucose120, dm_status) %>%
+         Glucose0, Glucose120) %>%
   gather(Measure, Value, -SID) %>%
   na.omit() %>%
   group_by(Measure) %>%
@@ -45,8 +46,14 @@ scatter.plot(ds$Creatinine, ds$UDBP,
              'Serum Creatinine', 'UDBP') +
 geom_smooth(se=TRUE, colour='black') # method=lm for linear line
 
-cor.test(ds$VitaminD, ds$CaCrRatio, method='spearman', exact=FALSE)
+cor.test(ds_base$UDBP, ds_base$UDBP/ds_base$UrineCreatinine, method='pearson', exact=FALSE)
 cor(ds$PTH, ds$CaCrRatio, use="complete.obs") %>% round(2)
+
+ds %>% 
+  filter(VN == 1, UDBP < 5000) %>% 
+  scatter_plot("log(UDBP)", "log(udbpCrRatio)", 
+               "log UDBP", "log UDBP:Creatinine") +
+  geom_smooth(colour = "black")
 
 ###########################################################################################
 ## TABLE 1 ##

@@ -20,7 +20,9 @@ ds_init <- PROMISE::PROMISE_data %>%
   filter(UDBP < 50000)
 
 ds <- ds_init %>% 
-  mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62, UDBP),
+  mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62,
+                       ifelse(UDBP == 0, 0.01,
+                              UDBP)),
          Ethnicity = as.character(Ethnicity),
          isAfrican = ifelse(Ethnicity == 'African', 1, 0), 
          Ethnicity = ifelse(Ethnicity %in% c('African', 'First Nations', 'Other'), 'Other', Ethnicity),
@@ -42,7 +44,7 @@ ds <- ds_init %>%
          UDBP_status = ifelse(UDBP == 0, 'Undetected',
                               ifelse(UDBP < 1.23, 'Low',
                                      ifelse(UDBP > 60, 'High', 'Normal'))),
-         udbpCrRatio = UDBP/Creatinine,
+         udbpCrRatio = UDBP/UrineCreatinine,
          CaCrRatio = UrinaryCalcium/UrineCreatinine) %>% 
   filter(eGFR<200) %>% 
   filter(Creatinine<200) %>% 
@@ -53,7 +55,7 @@ ds <- ds_init %>%
   filter(!(SID == 3025 & VN == 6)) %>%
   filter(!(SID == 4016 & VN == 1)) %>%
   mutate(eGFR_status=factor(eGFR_status, 
-                            levels=c('Normal', 'Mild', 'Moderate', 'Hyperfiltration'), 
+                            levels=c("Hyperfiltration", 'Normal', 'Mild', 'Moderate'), 
                             ordered=TRUE),
          mcr_status = factor(mcr_status,
                              levels = c("Normal", "Microalbuminuria", "Macroalbuminuria"),

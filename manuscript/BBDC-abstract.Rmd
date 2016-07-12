@@ -38,7 +38,7 @@ Boxplot: eGFR categories
 
 ```{r box-eGFR}
 ds_base <- ds %>% 
-  filter(VN == 1, UDBP < 5000, CRP < 10)
+  filter(VN == 1, UDBP < 5000)
 
 ds_base %>% 
   select(eGFR_status, UDBP, UrineCreatinine) %>% 
@@ -49,11 +49,11 @@ ds_base %>%
   scale_x_discrete(labels = paste(levels(ds_base$eGFR_status), 
                                     "\n(n=", table(ds_base$eGFR_status), ")", sep = ""))
 
-anova <- aov(ds_base$UDBP~ds_base$eGFR_status)
+anova <- aov(log(ds_base$UDBP/ds_base$UrineCreatinine)~ds_base$eGFR_status)
 summary(anova)
-TukeyHSD(anova)
-
-kruskal.test(ds_base$UDBP ~ ds_base$eGFR_status) 
+# TukeyHSD(anova)
+# 
+# kruskal.test(ds_base$UDBP ~ ds_base$eGFR_status) 
 
 rm(ds_base)
 rm(anova)
@@ -65,9 +65,9 @@ ds_base <- ds %>%
   filter(VN == 1, UDBP < 5000, CRP < 10)
 
 ds_base %>% 
-  ggplot(aes_string("log(eGFR)", "log(UDBP/UrineCreatinine)")) +
+  ggplot(aes_string("eGFR", "log(UDBP/UrineCreatinine)")) +
   geom_point() + #mapping = aes(colour = CRP)
-  xlab("log estimated GFR") + 
+  xlab("Estimated GFR (ml/min/1.73m^2)") + 
   ylab("log UDBP:Creatinine") +
   geom_smooth(method = lm, colour = "black") +
   theme(panel.background = element_blank())
