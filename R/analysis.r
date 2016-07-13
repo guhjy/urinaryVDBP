@@ -87,7 +87,7 @@ chisq.test(table(ds$dm_status, ds$eGFR_status), correct = TRUE)
 #####################################################################################
 
 aggregate(tb2$UrineMicroalbumin ~ tb2$eGFR_status, data=ds, FUN=median)
-aggregate(tb2$UDBP_cr_ln ~ tb2$eGFR_status, data=ds, FUN=quantile) # Take the (25%, 75%)
+aggregate(ds$UDBP ~ ds$eGFR_status, data=ds, FUN=quantile) # Take the (25%, 75%)
 aggregate(tb2$UDBP_cr ~ tb2$mcr_status, data=ds, FUN=median)
 aggregate(tb2$UDBP_cr ~ tb2$mcr_status, data=ds, FUN=quantile)
 aggregate(tb2$UDBP_cr_ln ~ tb2$dm_status, data=ds, FUN=median)
@@ -102,64 +102,6 @@ summary(aov(tb2$UDBP_cr_ln~tb2$mcr_status))
 summary(aov(tb2$UDBP_cr_ln~tb2$dm_status))
 
 TukeyHSD(tb2.aovGFR)
-
-# Boxplots
-ggplot(ds, aes(x=ds$eGFR_status, y=ds$UDBP_cr_ln)) +
-  geom_boxplot() +
-  scale_x_discrete(limits=c('normal','mild','moderate')) +
-  xlab('Estimated GFR') +
-  ylab('log UDBP:Creatinine') +
-  theme_bw()
-
-ggplot(ds, aes(x=ds$mcr_status, y=ds$UDBP_cr_ln)) +
-  geom_boxplot(fill='#00c5b9', colour='#2f3848') +
-  scale_x_discrete(limits=c('normal','microalbuminuria','macroalbuminuria')) +
-  xlab('Albuminuria') +
-  ylab('log UDBP:Creatinine') +
-  theme_set(theme_minimal())
-
-ggplot(ds, aes(x=ds$dm_status, y=ds$UDBP_cr_ln)) +
-  geom_boxplot(fill='#00c5b9', colour='#2f3848') +
-  scale_x_discrete(limits=c('NGT','IFG', 'IGT','DM')) +
-  xlab('Diabetic Status') +
-  ylab('log UDBP:Creatinine') +
-  theme_set(theme_minimal())
-
-# Correlations
-# geom_point(colour = '#number')
-#f05768 pink
-#00c5b9 turquoise
-#2f3848 dark grey
-
-ggplot(ds, aes(x=ds$eGFR_ln, y=ds$UDBP_cr_ln)) +
-  geom_point() +
-  geom_smooth(method=lm, se=FALSE, colour='#2f3848') +
-  xlab('log Estimated GFR (mL/min/1.73m^2)') +
-  ylab('log UDBP:Creatinine') +
-  theme_bw()
-
-ggplot(ds, aes(x=mcr_ln, y=ds$UDBP_cr_ln)) +
-  geom_point() +
-  geom_smooth(method=lm, se=FALSE, colour='#2f3848') +
-  xlab('log Microalbumin:Creatinine (mg/mmol)') +
-  ylab('log UDBP:Creatinine') +
-  theme_bw()
-
-
-# Correlation coefficient
-cor.test(tb2$eGFR_ln, tb2$UDBP_cr_ln, method='spearman', exact=FALSE)
-cor.test(tb2$MCR_ln, tb2$UDBP_cr_ln, method='spearman', exact=FALSE)
-
-# # LOESS <- can do this using ggplot2 above (take out method=lm)
-# scatter.smooth(x=tb2$eGFR, xlim=range(tb2$eGFR), xlab='Kidney Disease',
-#                y=tb2$UDBP_cr_ln, ylim=range(tb2$UDBP_cr_ln), ylab='ln(UDBP:Creatinine)',
-#                col="#f05768")
-#
-# scatter.smooth(x=tb2$MicroalbCreatRatio, xlim=range(tb2$MicroalbCreatRatio),
-#                xlab='Proteinuria Status',
-#                y=tb2$UDBP_cr_ln, ylim=range(tb2$UDBP_cr_ln),
-#                ylab='ln(UDBP:Creatinine)',
-#                col="#f05768")
 
 ########################################################################################
 ## Table 3 ##
