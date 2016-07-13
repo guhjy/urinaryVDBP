@@ -32,6 +32,29 @@ ds <- readRDS(file='data/ds.Rds')
 source('R/functions.r')
 ```
 
+# Values
+```{r eGFR}
+ds_base <- ds %>% 
+  filter(VN == 1, UDBP < 5000)
+
+ds %>% 
+  filter(VN == 1, UDBP < 5000) %>% 
+  select(dm_status, udbpCrRatio) %>% 
+  na.omit() %>% 
+  group_by(dm_status) %>% 
+  summarise(Median = median(log(udbpCrRatio)),
+            Lower = quantile(log(udbpCrRatio), probs = 0.25),
+            Upper = quantile(log(udbpCrRatio), probs = 0.75)) %>% 
+  knitr::kable()
+  
+anova <- aov(log(ds_base$udbpCrRatio) ~ ds_base$mcr_status)
+summary(anova)
+TukeyHSD(anova)
+
+rm(anova)
+```
+
+
 # Graphs
 
 Boxplot: eGFR categories
@@ -62,7 +85,7 @@ rm(anova)
 Scatterplot: eGFR categories
 ```{r scatter-eGFR}
 ds_base <- ds %>% 
-  filter(VN == 1, UDBP < 5000, CRP < 10)
+  filter(VN == 1, UDBP < 5000)
 
 ds_base %>% 
   ggplot(aes_string("eGFR", "log(UDBP/UrineCreatinine)")) +
@@ -114,7 +137,7 @@ rm(anova)
 Scatterplot: MCR categories
 ```{r scatter-mcr}
 ds_base <- ds %>% 
-  filter(VN == 1, UDBP < 5000, CRP < 10)
+  filter(VN == 1, UDBP < 5000)
 
 ds_base %>% 
   select(MicroalbCreatRatio, UDBP, UrineCreatinine) %>% 
@@ -183,7 +206,7 @@ ds %>%
 Scatterplot: 25(OH)D
 ```{r scatter-vitD}
 ds_base <- ds %>% 
-  filter(VN == 1, UDBP < 5000, CRP < 10)
+  filter(VN == 1, UDBP < 5000)
 
 ds_base %>% 
   scatter_plot("log(UDBP/UrineCreatinine)", "log(VitaminD)",
@@ -199,8 +222,7 @@ rm(ds_base)
 Subgroup analysis: 25(OH)D and UDBP
 ```{r}
 ds_sub <- ds %>% 
-  filter(VN == 1) %>% 
-  filter(UDBP < 5000) %>% 
+  filter(VN == 1, UDBP < 5000) %>% 
   filter(CRP < 10, ALT < 56 | ALT > 7)
 
 ds_sub %>% 
