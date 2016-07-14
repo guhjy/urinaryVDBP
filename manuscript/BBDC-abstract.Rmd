@@ -52,6 +52,7 @@ summary(anova)
 TukeyHSD(anova)
 
 rm(anova)
+rm(ds_base)
 ```
 
 
@@ -221,9 +222,27 @@ rm(ds_base)
 
 Subgroup analysis: 25(OH)D and UDBP
 ```{r}
+# Determine PTH tertiles (<3.61, 3.61 - 5.0, >5.0)
+# Vitamin D status - Endocrine Society:
+#     Deficient = <50 nmol/L
+#     Insufficient = 50-74
+#     Sufficient = >74
+
+ds %>% 
+  filter(VN == 1, UDBP < 5000) %>% 
+  summarise(Lower = quantile(PTH, probs = 0.33, na.rm = TRUE),
+            Upper = quantile(PTH, probs = 0.67, na.rm = TRUE))
+
 ds_sub <- ds %>% 
   filter(VN == 1, UDBP < 5000) %>% 
-  filter(CRP < 10, ALT < 56 | ALT > 7)
+  mutate(dm_status2 = ifelse(dm_status == "NGT", "NGT",
+                              "Dysglycaemia"),
+         mcr_status2 = ifelse(mcr_status == "Normal", "Normal",
+                              "Albuminuria"),
+         eGFR_status2 = ifelse(eGFR_status == "Normal" | eGFR_status == "Hyperfiltration",
+                               "Normal", "KD"),
+         lowVitD = ifelse()) %>% 
+  filter(mcr_status2 == "Albuminuria", eGFR_status2 == "KD")
 
 ds_sub %>% 
   scatter_plot("log(UDBP/UrineCreatinine)", "VitaminD",
@@ -232,6 +251,8 @@ ds_sub %>%
   geom_smooth(method = "lm", colour = "black")
 
 cor.test(ds_sub$VitaminD, ds_sub$UDBP, method='spearman', exact=FALSE)
+
+rm(ds_sub)
 ```
 
 Medication
