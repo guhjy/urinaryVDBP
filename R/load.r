@@ -37,10 +37,9 @@ ds <- ds_init %>%
                                     'Microalbuminuria')),
          creat.mgdl = Creatinine * 0.011312,
          eGFR = CKDEpi.creat(creat.mgdl, as.numeric(Sex)-1, Age, isAfrican),
-         eGFR_status = ifelse(eGFR>=90 & eGFR<=125, 'Normal',
+         eGFR_status = ifelse(eGFR>=90, 'Normal',
                               ifelse(eGFR >= 60 & eGFR < 90, 'Mild',
-                                     ifelse(eGFR>125, 'Hyperfiltration',
-                                            'Moderate'))),
+                                     'Moderate')),
          UDBP_status = ifelse(UDBP == 0, 'Undetected',
                               ifelse(UDBP < 1.23, 'Low',
                                      ifelse(UDBP > 60, 'High', 'Normal'))),
@@ -55,7 +54,7 @@ ds <- ds_init %>%
   filter(!(SID == 3025 & VN == 6)) %>%
   filter(!(SID == 4016 & VN == 1)) %>%
   mutate(eGFR_status=factor(eGFR_status, 
-                            levels=c("Hyperfiltration", 'Normal', 'Mild', 'Moderate'), 
+                            levels=c('Normal', 'Mild', 'Moderate'), 
                             ordered=TRUE),
          mcr_status = factor(mcr_status,
                              levels = c("Normal", "Microalbuminuria", "Macroalbuminuria"),

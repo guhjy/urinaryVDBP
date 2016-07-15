@@ -134,7 +134,7 @@ box_plot2 <- function(data, xvar, yvar, xlab="", ylab="") {
           axis.line.y = element_blank(),
           axis.text.y = element_text(colour = "grey"),
           axis.ticks.y = element_line(colour = "grey"),
-          axis.text.x = element_text(colour = "grey 30"),
+          axis.text.x = element_text(colour = "grey 30", angle = 45),
           axis.title = element_text(size = 10)) +
     xlab(xlab) +
     ylab(ylab)
