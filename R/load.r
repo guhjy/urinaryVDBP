@@ -12,6 +12,7 @@ library(tidyr)
 library(pander)
 library(captioner)
 library(knitr)
+library(mason)
 
 
 # No need to run unless data has changed
