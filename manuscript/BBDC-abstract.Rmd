@@ -25,6 +25,7 @@ library(tidyr)
 library(pander)
 library(captioner)
 library(knitr)
+library(mason)
 ```
 
 ```{r data}
@@ -315,8 +316,61 @@ cor.test(ds_sub$VitaminD, ds_sub$UDBP, method='spearman', exact=FALSE)
 rm(ds_sub)
 ```
 
+Multivariate Analysis
+```{r ancova}
+interaction.plot(ds_base$mcr_status, ds_base$eGFR_status, ds_base$udbpCrRatio)
+
+anova(lm(udbpCrRatio ~ mcr_status + eGFR_status + mcr_status*eGFR_status, data = ds_base))
+
+
+
+# Variance-Covariance matrix:
+
+var(PROMISE_data$BMI, na.rm = TRUE)
+
+anthro <- PROMISE_data[c("BMI", "Height", "Weight")]
+cov(anthro, anthro, use = "complete.obs")
+
+# independence = assumes independence between clusters (same as linear regression)
+# autoregressive = correlation between the two variables gets smaller as years pass
+# exchangable = correlation doesn't change between time points
+# unstructured = cannot predict how correlation changes between time points 
+# GEE calculates the working correlation, not the actual 
+
+PROMISE_data %>% 
+  design("gee") %>% 
+  add_settings(cluster.id = "SID", 
+               corstr = "ar1",
+               family = gaussian()) %>% 
+  add_variables("yvars", "ISI") %>% 
+  add_variables("xvars", c("BMI", "Weight")) %>% 
+  add_variables("covariates", c("Sex", "Ethnicity", "VN")) %>% 
+  construct() %>% 
+  add_variables("yvars", c("HOMA")) %>% 
+  add_variables("covariates", "VN") %>% 
+  construct() %>% 
+  scrub() %>% 
+  polish_filter("Xterm$", "term") %>% 
+#   polish_adjust_pvalue() %>% 
+#   polish_transform_estimates(function(x) exp(x)) # "Back-transform" if log
+  
+  PROMISE_data %>% 
+  dplyr::filter(VN == 1) %>% 
+  design("glm") %>% 
+  add_settings(family = gaussian()) %>% 
+  add_variables("yvars", "ISI") %>% 
+  add_variables("xvars", c("BMI", "Weight")) %>% 
+  add_variables("covariates", c("Sex", "Ethnicity")) %>% 
+  construct() %>% 
+  add_variables("covariates", "VN") %>% 
+  construct() %>% 
+  add_variables("covariates", "mcr_status")
+  scrub()
+```
+
+
 Medication
-```{r}
+```{r meds}
 ds_visit <- ds %>% 
   filter(fVN == "Baseline", UDBP < 5000, CRP < 10) %>% 
   select(fMedsBP, UDBP, UrineCreatinine, dm_status) %>% 
