@@ -318,24 +318,44 @@ rm(ds_sub)
 
 Multivariate Analysis
 ```{r ancova}
+ds_base <- ds %>% 
+  filter(VN == 1, UDBP < 5000)
+
 interaction.plot(ds_base$mcr_status, ds_base$eGFR_status, ds_base$udbpCrRatio)
 
-anova(lm(udbpCrRatio ~ mcr_status + eGFR_status + mcr_status*eGFR_status, data = ds_base))
+mcr_eGFR <- lm(udbpCrRatio ~ mcr_status + eGFR_status + mcr_status*eGFR_status, data = ds_base)
+anova(mcr_eGFR)
 
+qqnorm(mcr_eGFR$res)
+plot(mcr_eGFR$fitted, mcr_eGFR$res)
 
+ds %>% 
+  filter(VN == 1, UDBP < 5000) %>% 
+  select(udbpCrRatio, VitaminD, Ethnicity) %>% 
+  na.omit() %>% 
+  ggplot(aes(x = log(udbpCrRatio), y = VitaminD)) +
+  geom_point(mapping = aes(colour = Ethnicity)) 
 
-# Variance-Covariance matrix:
-
-var(PROMISE_data$BMI, na.rm = TRUE)
-
-anthro <- PROMISE_data[c("BMI", "Height", "Weight")]
-cov(anthro, anthro, use = "complete.obs")
+anova(lm(VitaminD ~ udbpCrRatio + Ethnicity, data = ds_base))
 
 # independence = assumes independence between clusters (same as linear regression)
 # autoregressive = correlation between the two variables gets smaller as years pass
 # exchangable = correlation doesn't change between time points
 # unstructured = cannot predict how correlation changes between time points 
 # GEE calculates the working correlation, not the actual 
+
+ds %>% 
+  dplyr::filter(VN == 1, UDBP < 5000) %>% 
+  design("glm") %>% 
+  add_settings(family = gaussian()) %>% 
+  add_variables("yvars", "VitaminD") %>% 
+  add_variables("xvars", "udbpCrRatio") %>% 
+  add_variables("covariates", c("Age", "Sex", "Ethnicity", "BMI")) %>% 
+  construct() %>% 
+  # add_variables("covariates", "VN") %>% 
+  # construct() %>% 
+  # add_variables("covariates", "mcr_status")
+  scrub()
 
 PROMISE_data %>% 
   design("gee") %>% 
@@ -354,18 +374,6 @@ PROMISE_data %>%
 #   polish_adjust_pvalue() %>% 
 #   polish_transform_estimates(function(x) exp(x)) # "Back-transform" if log
   
-  PROMISE_data %>% 
-  dplyr::filter(VN == 1) %>% 
-  design("glm") %>% 
-  add_settings(family = gaussian()) %>% 
-  add_variables("yvars", "ISI") %>% 
-  add_variables("xvars", c("BMI", "Weight")) %>% 
-  add_variables("covariates", c("Sex", "Ethnicity")) %>% 
-  construct() %>% 
-  add_variables("covariates", "VN") %>% 
-  construct() %>% 
-  add_variables("covariates", "mcr_status")
-  scrub()
 ```
 
 
