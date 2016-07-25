@@ -104,8 +104,14 @@ table_baseline <- function(data, byfactor = '', caption) {
 ## Scatterplot ##
 scatter_plot = function(data, xvar, yvar, xlab='', ylab='') {
   ggplot(data, aes_string(x=xvar, y=yvar)) +
-    geom_point() + #mapping=aes(color=mcr_status)
-    theme(panel.background = element_blank()) +
+    geom_point(colour = "#0db7c4") + #mapping=aes(color=mcr_status)
+    theme_minimal() + 
+    theme(panel.grid.major.x = element_blank(), 
+          axis.line.y = element_blank(),
+          axis.text.y = element_text(colour = "grey"),
+          axis.ticks.y = element_line(colour = "grey"),
+          axis.text.x = element_text(colour = "grey 30"), #angle = 45
+          axis.title = element_text(size = 10)) +
     xlab(xlab) +
     ylab(ylab)
 }
@@ -134,7 +140,7 @@ box_plot2 <- function(data, xvar, yvar, xlab="", ylab="") {
           axis.line.y = element_blank(),
           axis.text.y = element_text(colour = "grey"),
           axis.ticks.y = element_line(colour = "grey"),
-          axis.text.x = element_text(colour = "grey 30", angle = 45),
+          axis.text.x = element_text(colour = "grey 30"), #angle = 45
           axis.title = element_text(size = 10)) +
     xlab(xlab) +
     ylab(ylab)
