@@ -59,25 +59,41 @@ rm(ds_base)
 
 # Graphs
 
+Scatterplot: UDBP adjustment
+```{r scatter-UDBP}
+ds2 <- ds %>% 
+  filter(VN == 1)
+
+ds2 %>% 
+  scatter_plot("UDBP", "udbpCrRatio",
+               "Urinary VDBP (ng/mL)", "uVDBP:creatinine") +
+  geom_smooth(colour = "grey50")
+
+###################
+
+cor.test(ds2$UDBP, ds2$udbpCrRatio, method = "spearman", exact = FALSE)
+
+rm(ds2)
+```
+
+
 Boxplot: eGFR categories
 ```{r box-eGFR}
 ds_base <- ds %>% 
-  filter(VN == 1, UDBP < 5000)
+  filter(VN == 1)
 
 ds_base %>% 
-  select(eGFR_status, UDBP, UrineCreatinine) %>% 
+  select(eGFR_status, udbpCrRatio, UDBP) %>% 
   na.omit() %>% 
-  box_plot2("eGFR_status", "log(UDBP/UrineCreatinine)", 
+  box_plot2("eGFR_status", "log(udbpCrRatio)", 
             "Estimated GFR (ml/min/1.73m^2)",
             "log uVDBP:Creatinine") +
-  scale_x_discrete(labels = paste(levels(ds_base$eGFR_status), 
+  scale_x_discrete(labels = paste(levels(ds_base$eGFR_status),
                                     "\n(n=", table(ds_base$eGFR_status), ")", sep = ""))
 
-anova <- aov(log(ds_base$UDBP/ds_base$UrineCreatinine)~ds_base$eGFR_status)
+anova <- aov(log(ds_base$UDBP)~ds_base$eGFR_status)
 summary(anova)
 # TukeyHSD(anova)
-# 
-# kruskal.test(ds_base$UDBP ~ ds_base$eGFR_status) 
 
 rm(ds_base)
 rm(anova)
@@ -93,12 +109,22 @@ ds_visit <- ds %>%
   mutate(n = ifelse(row_number()==n(), paste("n =", n()), NA))
 
 ds_visit %>% 
-  box_plot2("eGFR_status", "log(udbpCrRatio)",
-            "Estimated GFR Status", "log UDBP:Creatinine") +
+  box_plot2("eGFR_status", "log(UDBP)",
+            "Estimated GFR Status", "log UDBP") +
   theme(axis.title.x = element_blank()) +
   facet_grid(~fVN, switch = "x") +
   geom_text(aes(label = n), y = -7 , size = 3, colour = "grey40")
 
+###########################
+
+ds_visit <- ds %>% 
+  filter(UDBP < 5000, VN == 6)
+
+anova <- aov(log(ds_visit$UDBP)~ds_visit$eGFR_status)
+summary(anova)
+# TukeyHSD(anova)
+
+rm(anova)
 rm(ds_visit)
 ```
 
@@ -106,22 +132,16 @@ rm(ds_visit)
 Scatterplot: eGFR 
 ```{r scatter-eGFR}
 ds_base <- ds %>% 
-  filter(VN == 6, UDBP < 5000)
+  filter(VN == 1, UDBP < 5000)
 
 ds_base %>% 
-  ggplot(aes_string("eGFR", "log(UDBP/UrineCreatinine)")) +
-  geom_point(colour = "#0db7c4") + #mapping = aes(colour = CRP)
-  xlab("Estimated GFR (ml/min/1.73m^2)") + 
-  ylab("log UDBP:Creatinine") +
-  geom_smooth(method = lm, colour = "grey50") +
-  theme_minimal() +
-  theme(panel.grid.major.x = element_blank(), 
-        axis.line.y = element_blank(),
-        axis.text.y = element_text(colour = "grey"),
-        axis.ticks.y = element_line(colour = "grey"),
-        axis.text.x = element_text(colour = "grey 30"), #angle = 45
-        axis.title = element_text(size = 10))
-  
+  select(eGFR, UDBP, UrineCreatinine) %>% 
+  na.omit() %>% 
+  scatter_plot("eGFR", "log(UDBP/UrineCreatinine)",
+               "Estimated Glomerular Filtration Rate (ml/min/1.73m^2)",
+               "log UDBP:Creatinine") +
+  geom_smooth(method = lm, colour = "grey50")
+
 cor.test(ds_base$eGFR, ds_base$udbpCrRatio, method = "spearman", exact = FALSE)
 
 rm(ds_base)
@@ -131,10 +151,19 @@ Longitudinal scatterplot: eGFR
 ```{r scatter-eGFR2}
 ds %>% 
   filter(UDBP < 5000) %>% 
-  scatter_plot("eGFR", "log(UDBP/UrineCreatinine)",
-            "Estimated GFR (ml/min/1.73m^2)", "log uVDBP:Creatinine") +
+  scatter_plot("eGFR", "log(UDBP)",
+            "Estimated GFR (ml/min/1.73m^2)", "log uVDBP") +
   geom_smooth(colour = "grey50") +
   facet_grid(~fVN, switch = "x")
+
+####################
+
+ds_visit <- ds %>% 
+  filter(VN == 6, UDBP < 5000)
+
+cor.test(ds_visit$eGFR, ds_visit$UDBP, method = "spearman", exact = FALSE)
+
+rm(ds_visit)
 ```
 
 
@@ -149,9 +178,9 @@ ds_mcr <- ds %>%
 
 ds_mcr %>% 
   filter(UDBP < 5000, CRP < 10) %>% 
-  select(mcr_status, UDBP, UrineCreatinine) %>% 
+  select(mcr_status, udbpCrRatio) %>% 
   na.omit() %>% 
-  box_plot2("mcr_status", "log(UDBP/UrineCreatinine)", 
+  box_plot2("mcr_status", "log(udbpCrRatio)", 
             "Albuminuria",
             "log uVDBP:Creatinine") +
   scale_x_discrete(labels = paste(levels(ds_mcr$mcr_status), 
@@ -269,15 +298,15 @@ ds %>%
 Scatterplot: 25(OH)D
 ```{r scatter-vitD}
 ds_base <- ds %>% 
-  filter(VN == 6, UDBP < 5000)
+  filter(VN == 1, UDBP < 5000)
 
 ds_base %>% 
-  scatter_plot("log(UDBP/UrineCreatinine)", "VitaminD",
-               "log UDBP:Creatinine",
+  scatter_plot("log(udbpCrRatio)", "VitaminD",
+               "log uVDBP:creatinine",
                "Serum 25(OH)D") +
   geom_smooth(method = lm, colour = "grey50")
 
-cor.test(ds_base$VitaminD, ds_base$udbpCrRatio, method = "spearman", exact = FALSE)
+cor.test(ds_base$VitaminD, ds_base$UDBP, method = "spearman", exact = FALSE)
 
 rm(ds_base)
 ```
@@ -314,21 +343,22 @@ ds_sub <- ds %>%
                                      "Insufficient")),
          ALT_status = ifelse(ALT > 6 & ALT < 57, "Normal",
                              "Abnormal"))
-  # group_by(mcr_status) %>% 
+  # group_by(mcr_status) %>%
   # mutate(n = ifelse(row_number()==n(), paste("n=", n()), NA))
-  # filter(mcr_status == "Macroalbuminuria")
+  # filter(mcr_status == "Macroalbuminuria" | eGFR_status == "Moderate" | PTH_status == "PTH3")
 
 ds_sub %>%
-  select(udbpCrRatio, VitaminD, PTH_status) %>% 
-  na.omit() %>% 
+  select(udbpCrRatio, VitaminD, mcr_status) %>%
+  na.omit() %>%
   scatter_plot("log(udbpCrRatio)", "VitaminD",
                "log UDBP:Creatinine",
                "Serum 25(OH)D (nmol/L)") +
   geom_smooth(method = "lm", colour = "grey50") +
-  facet_grid(~PTH_status, switch = "x")
-  # geom_text(aes(label = n), y = 40, size = 3, colour = "grey40")
+  facet_grid(~mcr_status, switch = "x") 
+  # theme(strip.text.x = element_text(size = 14, colour = "grey70"))
+  # geom_text(aes(label = n), y = 0, size = 12, colour = "grey40")
 
-# cor.test(ds_sub$VitaminD, ds_sub$UDBP, method='spearman', exact=FALSE)
+cor.test(ds_sub$VitaminD, ds_sub$UDBP, method='spearman', exact=FALSE)
 
 rm(ds_sub)
 ```
@@ -346,6 +376,26 @@ ds %>%
 
 Multivariate Analysis
 ```{r ancova}
+ds2 <- ds %>% 
+  filter(VN == 1) %>% 
+  select(VitaminD, UDBP, Age, Sex, Ethnicity, BMI, dm_status, eGFR_status, udbpCrRatio) %>% 
+  na.omit()
+
+model1 <- lm(VitaminD ~ udbpCrRatio, 
+             data = ds2)
+model2 <- lm(VitaminD ~ udbpCrRatio + Age + Sex + Ethnicity + BMI, 
+             data = ds2)
+model3 <- lm(VitaminD ~ udbpCrRatio + Age + Sex + Ethnicity + BMI + dm_status, 
+             data = ds2)
+model4 <- lm(VitaminD ~ udbpCrRatio + Age + Sex + Ethnicity + BMI + dm_status + eGFR_status, 
+             data = ds2)
+
+anova(model1, model2, model3, model4)
+AIC(model1, model2, model3, model4)
+summary(fit)
+
+
+
 # independence = assumes independence between clusters (same as linear regression)
 # autoregressive = correlation between the two variables gets smaller as years pass
 # exchangable = correlation doesn't change between time points
@@ -359,8 +409,12 @@ multivar <- ds %>%
   add_variables("yvars", "VitaminD") %>% 
   add_variables("xvars", "udbpCrRatio") %>%
   construct() %>% 
-  add_variables("covariates", c("Age", "Sex", "Ethnicity", "BMI")) %>%
+  add_variables("covariates", c("Age", "Sex", "Ethnicity", "BMI",
+                                "dm_status",
+                                "eGFR_status")) %>%
   construct() %>% 
+  scrub()
+
   add_variables("covariates", "dm_status") %>%
   construct() %>%
   add_variables("covariates", "eGFR_status") %>%
@@ -389,6 +443,32 @@ multivar <- ds %>%
 #   polish_transform_estimates(function(x) exp(x)) # "Back-transform" if log
   
 ```
+
+PTH and VitaminD
+```{r}
+ds2 <- ds %>% 
+  filter(VN == 1, UDBP < 5000) %>% 
+  mutate(PTH_status = ifelse(PTH < 3.61, "PTH1",
+                             ifelse(PTH > 5, "PTH3",
+                                    "PTH2")),
+         VitD_status = ifelse(VitaminD < 50, "Deficient", 
+                              ifelse(VitaminD > 74, "Sufficient", 
+                                     "Insufficient")),
+         ALT_status = ifelse(ALT > 6 & ALT < 57, "Normal",
+                             "Abnormal")) 
+
+ds2 %>% 
+  filter(VN == 1) %>% 
+  ggplot(aes(PTH_status, log(udbpCrRatio))) +
+  geom_point(mapping = aes(colour = VitD_status))
+
+
+
+cloud(UDBP ~ PTH_status + VitD_status, ds2, panel.3d.cloud=panel.3dbars, col.facet='grey', 
+      xbase=0.4, ybase=0.4, scales=list(arrows=FALSE, col=1), 
+      par.settings = list(axis.line = list(col = "transparent")))
+```
+
 
 
 Medication
