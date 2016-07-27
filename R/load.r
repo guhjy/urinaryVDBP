@@ -13,6 +13,7 @@ library(pander)
 library(captioner)
 library(knitr)
 library(mason)
+library(latticeExtra)
 
 
 # No need to run unless data has changed
@@ -77,6 +78,8 @@ ds <- ds_init %>%
        MeanArtPressure, Systolic, Diastolic, PTH, ALT,
        CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs, CRP)
 
+rm(ds_init)
+
 #####################################################
 # UDBP with only three groups (low group not sub-divided)
 ds_UDBP3 <- ds %>% 
@@ -89,4 +92,4 @@ ds_UDBP3 <- ds %>%
 
 ###################################################
 # Save the data
-saveRDS(ds, file='ds.Rds')
+saveRDS(ds, file='data/ds.Rds')
