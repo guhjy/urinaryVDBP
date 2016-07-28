@@ -39,7 +39,7 @@ ds2 <- ds %>%
   summarise(n = n())
 
 # Check normal distribution
-histo_plot(ds$UrinaryCalcium, 0.1, 'UDBP')
+histo_plot(ds, UrinaryCalcium, 0.1, 'UDBP')
 
 # Check continous distribution
 scatter.plot(ds$Creatinine, ds$UDBP, 
@@ -171,7 +171,9 @@ ggplot(ds, aes(x=Age, y=UDBP_cr_ln, colour=mcr_status)) +
 ######################################################################
 
 ## Check distribution of serum 25(OH)D
-histo_plot(ds$VitaminD, 0.5, 'Serum 25(OH)D Concentration (nmol/L)')
+ds %>% 
+  filter(VN == 1) %>% 
+  histo_plot("VitaminD", 2, 'Serum 25(OH)D Concentration (nmol/L)')
 
 ## Check normality
 shapiro.test(tb4$VitaminD_ln)

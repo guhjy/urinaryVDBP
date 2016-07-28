@@ -13,13 +13,12 @@ library(pander)
 library(captioner)
 library(knitr)
 library(mason)
-library(latticeExtra)
 
 
 # No need to run unless data has changed
 
 ds_init <- PROMISE::PROMISE_data %>%
-  filter(UDBP < 50000)
+  filter(UDBP < 40000)
 
 ds <- ds_init %>% 
   mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62,
@@ -42,7 +41,7 @@ ds <- ds_init %>%
          eGFR_status = ifelse(eGFR>=90, 'Normal',
                               ifelse(eGFR >= 60 & eGFR < 90, 'Mild',
                                      'Moderate')),
-         UDBP_status = ifelse(UDBP == 0, 'Undetected',
+         UDBP_status = ifelse(UDBP == 0.01, 'Undetected',
                               ifelse(UDBP < 1.23, 'Low',
                                      ifelse(UDBP > 60, 'High', 'Normal'))),
          udbpCrRatio = UDBP/UrineCreatinine,
@@ -79,16 +78,6 @@ ds <- ds_init %>%
        CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs, CRP)
 
 rm(ds_init)
-
-#####################################################
-# UDBP with only three groups (low group not sub-divided)
-ds_UDBP3 <- ds %>% 
-  mutate(UDBP_status = ifelse(UDBP < 1.23, 'Low',
-                              ifelse(UDBP > 60, 'High', 'Normal'))) %>% 
-  mutate(UDBP_status=factor(UDBP_status,
-                            levels=c('Low', 'Normal', 'High'),
-                            ordered=TRUE)) %>% 
-  arrange(UDBP_status)
 
 ###################################################
 # Save the data
