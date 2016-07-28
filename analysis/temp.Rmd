@@ -1,0 +1,40 @@
+---
+title: Urinary excretion of vitamin D binidng protein across varying degrees of kidney
+  dysfunction and dysglycemia
+author: "WINDY WANG"
+date: "July 6, 2016"
+# bibliography: bibliography.bib
+output:
+ word_document
+    # reference_docx: ../docx_template.docx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir = '../')
+```
+
+```{r package}
+library(nephro)
+library(carpenter)
+library(ggplot2)
+library(knitr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(pander)
+library(captioner)
+library(knitr)
+library(mason)
+```
+
+```{r data}
+ds <- readRDS(file='data/ds.Rds')
+source('R/functions.r')
+```
+
+# Subject Characteristics
+```{r sub-char}
+ds %>% 
+  table_baseline('fVN', "Subject characteristics")
+```

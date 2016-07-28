@@ -39,18 +39,18 @@ table_baseline <- function(data, byfactor = '', caption) {
         'Ethnicity',
         'BMI',
         'Waist',
-        'UrineMicroalbumin',
-        'UrineCreatinine',
-        'MicroalbCreatRatio',
         'eGFR',
-        'VitaminD',
+        'MicroalbCreatRatio',
+        'UrineCreatinine',
+        'UrineMicroalbumin',
         'UDBP',
-        'Creatinine',
+        'Creatinine', 
+        'VitaminD', 
+        "PTH", 
+        "ALT", 
+        'Systolic', 
+        'Diastolic', 
         'MeanArtPressure',
-        'Systolic',
-        'Diastolic',
-        'PTH',
-        'ALT',
         'Glucose0',
         'Glucose120',
         'dm_status'
@@ -60,31 +60,27 @@ table_baseline <- function(data, byfactor = '', caption) {
     ) %>%
     carpenter::add_rows(c('Age'),
                         carpenter::stat_meanSD, digits = 1) %>%
-    carpenter::add_rows(c('Sex', 'Ethnicity'),
-                        carpenter::stat_nPct, digits = 1) %>%
+    carpenter::add_rows(c('Sex', "Ethnicity"),
+                        carpenter::stat_nPct, digits = 1) %>% 
     carpenter::add_rows(c('BMI', 'Waist'),
                         carpenter::stat_meanSD, digits = 1) %>%
     carpenter::add_rows(
       c(
-        'UrineMicroalbumin',
-        'UrineCreatinine',
-        'MicroalbCreatRatio',
         'eGFR',
+        'MicroalbCreatRatio',
+        'UrineCreatinine',
+        'UrineMicroalbumin',
         'UDBP'
       ),
       carpenter::stat_meanSD,
       digits = 1
     ) %>%
-    carpenter::add_rows(c('VitaminD', 'Creatinine'),
+    carpenter::add_rows(c('Creatinine', 'VitaminD', "PTH", "ALT"),
                         carpenter::stat_meanSD,
                         digits = 1) %>%
-    carpenter::add_rows(c('MeanArtPressure', 'Systolic', 'Diastolic'),
+    carpenter::add_rows(c('Systolic', 'Diastolic', 'MeanArtPressure'),
                         carpenter::stat_meanSD,
                         digits = 1) %>%
-    carpenter::add_rows(c('PTH'),
-                        carpenter::stat_meanSD, digits = 1) %>%
-    carpenter::add_rows(c('ALT'),
-                        carpenter::stat_meanSD, digits = 1) %>%
     carpenter::add_rows(c('Glucose0', 'Glucose120'),
                         carpenter::stat_meanSD,
                         digits = 1) %>%
@@ -176,11 +172,17 @@ bar_plot = function(data, xvar, yvar, xlab='', ylab='') {
 
 ## Histogram ##
 histo_plot = function(data, variable, bin, xlab='') {
-  ggplot(data, aes(x=variable)) +
+  ggplot(data, aes_string(x=variable)) +
     geom_histogram(binwidth=bin,
-                   colour='black', fill='white') +
+                   colour='#0db7c4', fill='#0db7c4') +
     xlab(xlab) +
-    theme_minimal()
+    theme_minimal() +
+    theme(panel.grid.major.x = element_blank(), 
+          axis.line.y = element_blank(),
+          axis.text.y = element_text(colour = "grey"),
+          axis.ticks.y = element_line(colour = "grey"),
+          axis.text.x = element_text(colour = "grey 30"), #angle = 45
+          axis.title = element_text(size = 10)) 
 }
 
 # EXAMPLE:
