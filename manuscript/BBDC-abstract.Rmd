@@ -108,11 +108,26 @@ ds %>%
   geom_smooth(colour = "grey50")
 ```
 
-Histogram: uCreatinine
-```{r hist-creat}
+Histogram
+```{r histogram}
 ds %>% 
   filter(VN == 1) %>% 
-  histo_plot("UDBP", 25, "Urinary VDBP (ng/mL)")
+  histo_plot("UDBP", 50, "Urinary VDBP (ng/mL)")
+```
+
+Histogram: Longitudinal
+```{r histogram2}
+ds_visit <- ds %>% 
+  filter(UDBP < 5000) %>% 
+  select(fVN, UDBP, UDBP_status) %>% 
+  na.omit() %>% 
+  group_by(fVN) %>% 
+  mutate(n = ifelse(row_number()==n(), paste("n =", n()), NA))
+
+ds_visit %>% 
+  histo_plot("log(UDBP)", 1, "log urinary VDBP (ng/mL)") +
+  facet_wrap(~fVN, switch = "x") +
+  geom_text(aes(label = n), y = 230, size = 3, colour = "grey40")
 ```
 
 
