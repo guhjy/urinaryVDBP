@@ -1,0 +1,132 @@
+---
+title: Conference Call - David Cole
+author: "WINDY WANG"
+date: "September 23, 2016"
+# bibliography: bibliography.bib
+output:
+ word_document
+    # reference_docx: ../docx_template.docx
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir = '../')
+```
+
+```{r package}
+library(nephro)
+library(carpenter)
+library(ggplot2)
+library(knitr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(pander)
+library(captioner)
+library(knitr)
+library(mason)
+```
+
+```{r data}
+ds <- readRDS(file='data/ds.Rds')
+source('R/functions.r')
+```
+
+# Summary of Methods
+Only baseline measures from the PROMISE cohort was used for the current analysis (n=750). Subjects with urinary vitamin D binding protein (uVDBP) concentrations of >60000 (n=4) and 45610 (n=1) were removed due to high likelihood of being outliers or unreliable samples. The lower limit of detection for the assay was 1.23 ng/mL, and all subjects with measures below this level were assigned 0.62 ng/mL (midpoint between zero and lower limit). UDBP was normalized using urinary creatinine levels to account for differences in urine volume between subjects. The data were transformed using natural log to allow parametric tests to be performed (zero values for uVDBP were given a static addition of 0.01 ng/mL). Estimated glomerular filtration rate (eGFR), albuminuria, and glucose tolerance were categorized based on severity of disease using clinically established cut-offs. For all analyses, statistical significance was defined as p<0.05.
+
+# Subject Characteristics
+```{r sub-char}
+ds %>% 
+  table_baseline("fVN", "")
+```
+
+
+# Distribution of Variables
+
+Histogram
+```{r histogram}
+ds %>% 
+  filter(VN == 1) %>% 
+  histo_plot("UDBP", 50, "Urinary VDBP (ng/mL)")
+```
+
+Histogram: Longitudinal
+```{r histogram2}
+ds_visit <- ds %>% 
+  filter(UDBP < 5000) %>% 
+  select(fVN, UrineCreatinine) %>% 
+  na.omit() %>% 
+  group_by(fVN) %>% 
+  mutate(n = ifelse(row_number()==n(), paste("n =", n()), NA))
+
+ds_visit %>% 
+  histo_plot("UrineCreatinine", 4, "Urinary Creatinine (mmol/L)") +
+  facet_wrap(~fVN, switch = "x") 
+  geom_text(aes(label = n), y = 230, size = 3, colour = "grey40")
+```
+
+# Urinary VDBP and Urinary Creatinine
+
+```{r scatter-uVDBP-uCreat}
+ds %>% 
+  filter(VN == 1, UDBP < 1000) %>% 
+  scatter_plot("UDBP", "UrineCreatinine", 
+               "Urinary VDBP (ng/mL)", "Urinary Creatinine (mmol/L)") +
+  geom_smooth(colour = "grey50")
+```
+
+# Associations with Kidney Measures
+
+Microalbumin-to-Creatinine Ratio
+
+```{r scatter-mcr-vn}
+ds %>% 
+  filter(UDBP < 5000) %>% 
+  scatter_plot("log(MicroalbCreatRatio)", "log(UDBP/UrineCreatinine)",
+            "log Microalbumin-to-Creatinine Ratio", "log uVDBP:Creatinine") +
+  geom_smooth(colour = "grey50") +
+  facet_grid(~fVN, switch = "x")
+```
+
+Estimated GFR
+
+```{r scatter-eGFR-vn}
+ds %>% 
+  scatter_plot("eGFR", "log(udbpCrRatio)",
+            "Estimated GFR (ml/min/1.73m^2)", "log uVDBP") +
+  geom_smooth(colour = "grey50") +
+  facet_grid(~fVN, switch = "x")
+```
+
+# Association with Glycemic Status
+
+```{r box-dm-vn}
+ds_visit <- ds %>% 
+  select(fVN, UDBP, udbpCrRatio, dm_status) %>% 
+  na.omit() %>% 
+  group_by(fVN, dm_status) %>% 
+  mutate(n = ifelse(row_number()==n(), paste("n =", n()), NA))
+
+ds_visit %>% 
+  box_plot2("dm_status", "log(udbpCrRatio)",
+            "Glycemic Status", "log UDBP:Creatinine") +
+  theme(axis.title.x = element_blank()) +
+  facet_grid(~fVN, switch = "x") +
+  geom_text(aes(label = n), y = -5 , size = 3, colour = "grey40")
+
+## ANOVA
+
+ds_vn <- ds %>% 
+  filter(VN == 6)
+
+anova <- aov(ds_vn$UDBP~ds_vn$dm_status)
+summary(anova)
+TukeyHSD(anova)
+
+## Remove temporary variables
+
+rm(anova)
+rm(ds_vn)
+rm(ds_visit)
+```
