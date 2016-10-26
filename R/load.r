@@ -46,14 +46,6 @@ ds <- ds_init %>%
                                      ifelse(UDBP > 60, 'High', 'Normal'))),
          udbpCrRatio = UDBP/UrineCreatinine,
          CaCrRatio = UrinaryCalcium/UrineCreatinine) %>% 
-  filter(eGFR<200) %>% 
-  filter(Creatinine<200) %>% 
-  filter(!(SID == 1131 & VN == 1)) %>%
-  filter(!(SID == 1444 & VN == 6)) %>%
-  filter(!(SID == 2042 & VN == 3)) %>%
-  filter(!(SID == 2124 & VN == 1)) %>%
-  filter(!(SID == 3025 & VN == 6)) %>%
-  filter(!(SID == 4016 & VN == 1)) %>%
   mutate(eGFR_status=factor(eGFR_status, 
                             levels = c('Normal', 'Mild', 'Moderate'), 
                             ordered = TRUE),
