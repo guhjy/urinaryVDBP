@@ -186,17 +186,14 @@ histo_plot = function(data, variable, bin, xlab='') {
 # EXAMPLE:
 # histo_plot(ds$VitaminD, 2, 'Serum 25(OH)D')
 
-# Conversion ----------------------------------------------------------------------
-
-
-
+# Conversion --------------------------------------------------------------------------------------
 get_dysglycemia_data <- function(data) {
   dysgly.data <-
     dplyr::left_join(
       data %>%
-        dplyr::filter(VN == 0),
+        dplyr::filter(VN == 1),
       data %>%
-        dplyr::filter(!is.na(TotalNE)) %>%
+        dplyr::filter(!is.na(UDBP)) %>%
         dplyr::mutate_each(dplyr::funs(ifelse(is.na(.), 0, .)), IFG, IGT) %>%
         dplyr::mutate(PreDM = as.numeric(rowSums(.[c('IFG', 'IGT')], na.rm = TRUE))) %>%
         dplyr::mutate(FactorDysgly = ifelse(
@@ -216,21 +213,7 @@ get_dysglycemia_data <- function(data) {
                                           DetailedConvert))
         )
     ) %>%
-    dplyr::filter(!is.na(TotalNE))
+    dplyr::filter(!is.na(UDBP))
   
   return(dysgly.data)
 }
-
-
-calculate_conversion_dysgly <- function(data, variable = c('ConvertDM', 'ConvertPreDM')) {
-  variable <- match.arg(variable)
-  
-  conversion <-
-    table(data[variable])[2] %>%
-    {
-      paste0(., ' (', round((. / 477) * 100, 0), '%)')
-    }
-  
-  return(conversion)
-}
-
