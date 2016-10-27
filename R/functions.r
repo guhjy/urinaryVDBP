@@ -185,3 +185,35 @@ histo_plot = function(data, variable, bin, xlab='') {
 
 # EXAMPLE:
 # histo_plot(ds$VitaminD, 2, 'Serum 25(OH)D')
+
+# Conversion --------------------------------------------------------------------------------------
+get_dysglycemia_data <- function(data) {
+  dysgly.data <-
+    dplyr::left_join(
+      data %>%
+        dplyr::filter(VN == 1),
+      data %>%
+        dplyr::filter(!is.na(UDBP)) %>%
+        dplyr::mutate_each(dplyr::funs(ifelse(is.na(.), 0, .)), IFG, IGT) %>%
+        dplyr::mutate(PreDM = as.numeric(rowSums(.[c('IFG', 'IGT')], na.rm = TRUE))) %>%
+        dplyr::mutate(FactorDysgly = ifelse(
+          PreDM == 1, 'PreDM',
+          ifelse(DM == 1, 'DM',
+                 'NGT')
+        )) %>%
+        dplyr::select(SID, VN, FactorDysgly) %>%
+        tidyr::spread(VN, FactorDysgly) %>%
+        dplyr::mutate(
+          DetailedConvert = as.factor(paste0(`0`, '-', `1`, '-', `2`)),
+          ConvertDysgly = as.numeric(!grepl('NGT$|NGT-NA$|NGT-NGT-NA$|NGT-NA-NA$',
+                                            DetailedConvert)),
+          ConvertDM = as.numeric(grepl('-DM$|-DM-DM$|-DM-NA$|-DM-NGT$',
+                                       DetailedConvert)),
+          ConvertPreDM = as.numeric(grepl('-PreDM$|-PreDM-PreDM$|-PreDM-NA$',
+                                          DetailedConvert))
+        )
+    ) %>%
+    dplyr::filter(!is.na(UDBP))
+  
+  return(dysgly.data)
+}

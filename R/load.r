@@ -66,7 +66,7 @@ ds <- PROMISE::PROMISE_data %>%
        MeanArtPressure, Systolic, Diastolic, PTH, ALT,
        CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs)
 
-# Categorize mcr status -------------------fix this up so ugly--------------------------- 
+# Categorize mcr status =============================fix this up so ugly============================
 
 ds_VN1 <- ds %>% 
   dplyr::filter(VN == 1) %>% 
@@ -96,7 +96,7 @@ ds_VN6 <- ds %>%
 ds <- plyr::join(ds, ds_VN6, type = "full")
 
 
-# Make variable that shows progression ---------------------fix------------------
+# Make variable that shows progression ---------------------fix------------------------------------
 
 ds <- ds %>% 
   dplyr::mutate(mcrDiff1_3 = mcr_VN3 - mcr_VN1,
@@ -116,6 +116,8 @@ ds <- ds %>%
 ## -1 = micro to normo
 ## -2 = macro to micro
 ## -3 = macro to normo
+
+
 
 
   
