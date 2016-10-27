@@ -17,10 +17,7 @@ library(mason)
 
 # No need to run unless data has changed
 
-ds_init <- PROMISE::PROMISE_data %>%
-  filter(UDBP < 40000)
-
-ds <- ds_init %>% 
+ds <- PROMISE::PROMISE_data %>%
   mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62,
                        ifelse(UDBP == 0, 0.01,
                               UDBP)),
@@ -61,6 +58,7 @@ ds <- ds_init %>%
          Ethnicity = factor(Ethnicity,
                             levels = c("European", "Latino/a", "South Asian", "Other"),
                             ordered = TRUE)) %>%
+  
   select(SID, BMI, Waist, Age, Sex, Ethnicity, VN, fVN, 
        Glucose0, Glucose120, DM, IFG, IGT, 
        dm_status, mcr_status, eGFR_status, UDBP_status,
@@ -68,8 +66,6 @@ ds <- ds_init %>%
        UDBP, udbpCrRatio, VitaminD,
        MeanArtPressure, Systolic, Diastolic, PTH, ALT,
        CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs, CRP)
-
-rm(ds_init)
 
 ###################################################
 # Save the data
