@@ -189,7 +189,6 @@ histo_plot = function(data, variable, bin, xlab='') {
 # Conversion ----------------------------------------------------------------------
 
 
-
 get_dysglycemia_data <- function(data) {
   dysgly.data <-
     dplyr::left_join(
