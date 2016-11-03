@@ -7,11 +7,19 @@ library(knitr)
 library(pander)
 library(digest)
 
-ds <- readRDS(file='ds.Rds')
+ds <- readRDS(file='data/ds.Rds')
 source('functions.r')
 
+ds_canoe <- ds %>% 
+  select(Canoe, n) %>% 
+  filter(n == 1)
+
 ## Check n ##
-table(ds$eGFR_status)
+ds %>%
+  filter(VN == 1) %>% 
+  select(mcrProg1_3) %>% 
+  na.omit() %>% 
+  summarise(n = n())
 
 ## Check n of multiple variables ##
 ds %>%
@@ -54,6 +62,12 @@ ds %>%
   scatter_plot("log(UDBP)", "log(udbpCrRatio)", 
                "log UDBP", "log UDBP:Creatinine") +
   geom_smooth(colour = "black")
+
+# Missing from baseline but have follow-up ---------------------------------------------------------
+
+ds %>%
+  mutate(n = ifelse(is.na(mcr_VN1) & !is.na(mcr_VN3) | !is.na(mcr_VN6), 1, 0))
+
 
 ###########################################################################################
 ## TABLE 1 ##

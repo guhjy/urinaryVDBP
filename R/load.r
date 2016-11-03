@@ -64,7 +64,7 @@ ds <- PROMISE::PROMISE_data %>%
        MicroalbCreatRatio, eGFR, UrineMicroalbumin, UrineCreatinine, Creatinine,  
        UDBP, udbpCrRatio, VitaminD,
        MeanArtPressure, Systolic, Diastolic, PTH, ALT,
-       CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs)
+       CaCrRatio, UrinaryCalcium, matches("meds"), SmokeCigs, Canoe)
 
 # Categorize mcr status =============================fix this up so ugly============================
 
@@ -98,15 +98,17 @@ ds <- plyr::join(ds, ds_VN6, type = "full")
 
 # Make variable that shows progression ---------------------fix------------------------------------
 
-ds <- ds %>% 
-  dplyr::mutate(mcrDiff1_3 = mcr_VN3 - mcr_VN1,
-                mcrDiff3_6 = mcr_VN6 - mcr_VN3,
-                mcrProg1_3 = ifelse(mcrDiff1_3 == 0, "No change",
-                                    ifelse(mcrDiff1_3 == 1 | mcrDiff1_3 == 2 | mcrDiff1_3 == 3,
-                                           "Progress", "Regress")),
-                mcrProg3_6 = ifelse(mcrDiff3_6 == 0, "No change",
-                                    ifelse(mcrDiff3_6 == 1 | mcrDiff3_6 == 2 | mcrDiff3_6 == 3,
-                                           "Progress", "Regress")))
+# ds <- ds %>% 
+#   dplyr::mutate(mcrDiff1_3 = mcr_VN3 - mcr_VN1,
+#                 mcrDiff3_6 = mcr_VN6 - mcr_VN3,
+#                 mcrProg1_3 = ifelse(mcrDiff1_3 == 0, "No change",
+#                                     ifelse(mcrDiff1_3 == 1 | mcrDiff1_3 == 2 | mcrDiff1_3 == 3,
+#                                            "Progress", "Regress")),
+#                 mcrProg3_6 = ifelse(mcrDiff3_6 == 0, "No change",
+#                                     ifelse(mcrDiff3_6 == 1 | mcrDiff3_6 == 2 | mcrDiff3_6 == 3,
+#                                            "Progress", "Regress"))) %>% 
+#   mutate(n = ifelse(is.na(mcr_VN1) & !is.na(mcr_VN3), 1,
+#                     ifelse(is.na(mcr_VN1) & !is.na(mcr_VN6), 1, 0)))
 
 ## Key
 ## 0 = no change
@@ -117,9 +119,42 @@ ds <- ds %>%
 ## -2 = macro to micro
 ## -3 = macro to normo
 
+ds <- ds %>% 
+  dplyr::mutate(mcrDiff1_3 = mcr_VN3 - mcr_VN1,
+                mcrDiff3_6 = mcr_VN6 - mcr_VN3,
+                mcrProg1_3 = ifelse(mcrDiff1_3 == 0, "No change",
+                                    ifelse(mcrDiff1_3 == 1, "Norm to Micro", 
+                                           ifelse(mcrDiff1_3 == 2, "Micro to Macro",
+                                                  ifelse(mcrDiff1_3 == 3, "Norm to Macro",
+                                                         ifelse(mcrDiff1_3 == -1, "Micro to Norm",
+                                                                ifelse(mcrDiff1_3 == -2, "Macro to Micro",
+                                                                       "Macro to Norm")))))),
+                mcrProg3_6 = ifelse(mcrDiff3_6 == 0, "No change",
+                                    ifelse(mcrDiff3_6 == 1, "Norm to Micro", 
+                                           ifelse(mcrDiff3_6 == 2, "Micro to Macro",
+                                                  ifelse(mcrDiff3_6 == 3, "Norm to Macro",
+                                                         ifelse(mcrDiff3_6 == -1, "Micro to Norm",
+                                                                ifelse(mcrDiff3_6 == -2, "Macro to Micro",
+                                                                       "Macro to Norm"))))))) %>% 
+  dplyr::mutate(mcrProg1_3 = factor(mcrProg1_3,
+                                    levels = c("No change", 
+                                               "Norm to Micro", "Micro to Macro",
+                                               "Norm to Macro",
+                                               "Micro to Norm", "Macro to Micro",
+                                               "Macro to Norm"),
+                                    ordered = TRUE),
+                mcrProg3_6 = factor(mcrProg3_6,
+                                    levels = c("No change", 
+                                               "Norm to Micro", "Micro to Macro",
+                                               "Norm to Macro",
+                                               "Micro to Norm", "Macro to Micro",
+                                               "Macro to Norm"),
+                                    ordered = TRUE))
 
+## To find how many people have missing baseline but subsequent follow up, use
+## `sum(ds$n/3)`
 
-
+rm(c(ds_VN1, ds_VN3, ds_VN6))
   
 # Save the data ===================================================================================
 
