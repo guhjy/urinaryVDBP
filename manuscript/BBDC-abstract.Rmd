@@ -65,7 +65,7 @@ table(ds$fVN)
 # Subject Characteristics
 ```{r sub-char}
 ds %>% 
-  filter(VN == 1)
+  filter(VN == 1) %>% 
   table_baseline('UDBP_status', "Subject characteristics")
   
 # ANOVA for subject characteristics table

@@ -24,7 +24,7 @@ rename_table_rows <- function(x) {
 
 ## Subject Characterization
 
-table_baseline <- function(data, byfactor = '', caption) {
+table_baseline <- function(data, byfactor = '', caption=NULL) {
   data %>%
     mutate(
       eGFR_status = factor(eGFR_status, ordered = FALSE),
@@ -92,6 +92,60 @@ table_baseline <- function(data, byfactor = '', caption) {
     carpenter::construct_table(caption=caption)
 }
 
+table_progression <- function(data, byfactor = "") {
+  data %>%
+    carpenter::outline_table(
+      c(
+        'Age',
+        'BMI',
+        'Waist',
+        'eGFR',
+        'MicroalbCreatRatio',
+        'UrineCreatinine',
+        'UrineMicroalbumin',
+        'UDBP',
+        'Creatinine',
+        'VitaminD',
+        "PTH",
+        "ALT",
+        'Systolic',
+        'Diastolic',
+        'MeanArtPressure',
+        'Glucose0',
+        'Glucose120'
+      ),
+      byfactor
+      
+    ) %>%
+    carpenter::add_rows(c('Age'),
+                        carpenter::stat_meanSD, digits = 1) %>%
+    carpenter::add_rows(c('BMI', 'Waist'),
+                        carpenter::stat_meanSD, digits = 1) %>%
+    carpenter::add_rows(
+      c(
+        'eGFR',
+        'MicroalbCreatRatio',
+        'UrineCreatinine',
+        'UrineMicroalbumin',
+        'UDBP'
+      ),
+      carpenter::stat_meanSD,
+      digits = 1
+    ) %>%
+    carpenter::add_rows(c('Creatinine', 'VitaminD', "PTH", "ALT"),
+                        carpenter::stat_meanSD,
+                        digits = 1) %>%
+    carpenter::add_rows(c('Systolic', 'Diastolic', 'MeanArtPressure'),
+                        carpenter::stat_meanSD,
+                        digits = 1) %>%
+    carpenter::add_rows(c('Glucose0', 'Glucose120'),
+                        carpenter::stat_meanSD,
+                        digits = 1) %>%
+    carpenter::rename_rows(rename_table_rows) %>%
+    # carpenter::rename_columns('', 'Undetectable (n=12)', 'Below Limit (n=57)',
+    #                           'Normal (n=360)', 'Above Limit (n=310)')
+    carpenter::construct_table()
+}
 
 # Plots ------------------------------------------------------------------------
 

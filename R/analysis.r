@@ -35,17 +35,6 @@ ds %>%
   group_by(Measure) %>%
   summarise(n = n())
 
-ds_temp <- ds %>% 
-  select(SID, VN, eGFR, UDBP_status, UDBP, dm_status, mcr_status) %>% 
-  filter(SID == 3115) %>% 
-  arrange(VN)
-
-ds2 <- ds %>% 
-  select(fVN, eGFR_status, CRP, fMedsBP) %>% 
-  na.omit() %>% 
-  filter(fVN == 6, eGFR_status == "Hyperfiltration", CRP < 10) %>% 
-  summarise(n = n())
-
 # Check normal distribution
 histo_plot(ds, UrinaryCalcium, 0.1, 'UDBP')
 
@@ -69,9 +58,9 @@ ds %>%
   mutate(n = ifelse(is.na(mcr_VN1) & !is.na(mcr_VN3) | !is.na(mcr_VN6), 1, 0))
 
 
-###########################################################################################
-## TABLE 1 ##
-###########################################################################################
+
+# TABLE 1 ==========================================================================================
+
 # USE CARPENTER TO GENERATE ENTIRE TABLE
 
 # dplyr method

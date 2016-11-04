@@ -30,21 +30,205 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-Baseline
---------
+
+Find n
+------
 ```{r}
 ds1 <- ds %>% 
   filter(VN == 1)
+ds3 <- ds %>% 
+  filter(VN == 3)
 
-table(ds1$mcrDiff1_3)
+table(ds1$mcrProg1_3)
+table(ds3$mcrProg3_6)
 ```
 
-## Including Plots
 
-You can also embed plots, for example:
+Values Across Categories
+```{r table1}
+# Baseline measurements for subjects whose disease status changed between baseline 
+# and 3-year follow-up.
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+table <- ds %>% 
+  dplyr::filter(VN == 1) %>%
+  dplyr::group_by(mcrProg1_3) %>% 
+  dplyr::summarise(
+    n = n(),
+    Age = paste0(round(mean(Age, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(Age, na.rm = TRUE), 1), 
+                     ")"),
+    BMI = paste0(round(mean(BMI, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(BMI, na.rm = TRUE), 1), 
+                     ")"),
+    Waist = paste0(round(mean(Waist, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(Waist, na.rm = TRUE), 1), 
+                     ")"),
+    ACR = paste0(round(mean(MicroalbCreatRatio, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(MicroalbCreatRatio, na.rm = TRUE), 1), 
+                     ")"),
+    eGFR = paste0(round(mean(eGFR, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(eGFR, na.rm = TRUE), 1), 
+                     ")"),
+    UDBP = paste0(round(mean(UDBP, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(UDBP, na.rm = TRUE), 1), 
+                     ")"),
+    VitD = paste0(round(mean(VitaminD, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(VitaminD, na.rm = TRUE), 1), 
+                     ")")
+  )
+  # tidyr::spread(mcrProg1_3, n)
+
+
+tableWord <- as.data.frame(t(table))
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r table2}
+## Baseline measurements for subjects whose disease status changed between baseline 
+## and 3-year follow-up (NO SUBCATEGORIES).
+
+table <- ds %>% 
+  dplyr::filter(VN == 1) %>%
+  dplyr::group_by(mcrProgress1) %>% 
+  dplyr::summarise(
+    n = n(),
+    Age = paste0(round(mean(Age, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(Age, na.rm = TRUE), 1), 
+                     ")"),
+    BMI = paste0(round(mean(BMI, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(BMI, na.rm = TRUE), 1), 
+                     ")"),
+    Waist = paste0(round(mean(Waist, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(Waist, na.rm = TRUE), 1), 
+                     ")"),
+    ACR = paste0(round(mean(MicroalbCreatRatio, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(MicroalbCreatRatio, na.rm = TRUE), 1), 
+                     ")"),
+    eGFR = paste0(round(mean(eGFR, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(eGFR, na.rm = TRUE), 1), 
+                     ")"),
+    UDBP = paste0(round(mean(UDBP, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(UDBP, na.rm = TRUE), 1), 
+                     ")"),
+    VitD = paste0(round(mean(VitaminD, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(VitaminD, na.rm = TRUE), 1), 
+                     ")")
+  )
+  # tidyr::spread(mcrProg1_3, n)
+
+
+tableWord <- as.data.frame(t(table))
+
+## ANOVA -------------------------------------------------------------------------------------
+anova <- aov(ds$Waist~ds$mcrProgress1)
+summary(anova)
+TukeyHSD(anova)
+```
+
+```{r table3}
+# Baseline measurements for subjects whose disease status changed between 3-year 
+# and 6-year follow-up.
+
+table <- ds %>% 
+  dplyr::filter(VN == 1) %>%
+  dplyr::group_by(mcrProg3_6) %>% 
+  dplyr::summarise(
+    n = n(),
+    Age = paste0(round(mean(Age, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(Age, na.rm = TRUE), 1), 
+                     ")"),
+    BMI = paste0(round(mean(BMI, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(BMI, na.rm = TRUE), 1), 
+                     ")"),
+    Waist = paste0(round(mean(Waist, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(Waist, na.rm = TRUE), 1), 
+                     ")"),
+    ACR = paste0(round(mean(MicroalbCreatRatio, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(MicroalbCreatRatio, na.rm = TRUE), 1), 
+                     ")"),
+    eGFR = paste0(round(mean(eGFR, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(eGFR, na.rm = TRUE), 1), 
+                     ")"),
+    UDBP = paste0(round(mean(UDBP, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(UDBP, na.rm = TRUE), 1), 
+                     ")"),
+    VitD = paste0(round(mean(VitaminD, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(VitaminD, na.rm = TRUE), 1), 
+                     ")")
+  )
+
+
+tableWord <- as.data.frame(t(table))
+```
+
+```{r table4}
+## Baseline measurements for subjects whose disease status changed between 3-year 
+## and 6-year follow-up (NO SUBCATEGORIES).
+
+table <- ds %>% 
+  dplyr::filter(VN == 1) %>%
+  dplyr::group_by(mcrProgress2) %>% 
+  dplyr::summarise(
+    n = n(),
+    Age = paste0(round(mean(Age, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(Age, na.rm = TRUE), 1), 
+                     ")"),
+    BMI = paste0(round(mean(BMI, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(BMI, na.rm = TRUE), 1), 
+                     ")"),
+    Waist = paste0(round(mean(Waist, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(Waist, na.rm = TRUE), 1), 
+                     ")"),
+    ACR = paste0(round(mean(MicroalbCreatRatio, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(MicroalbCreatRatio, na.rm = TRUE), 1), 
+                     ")"),
+    eGFR = paste0(round(mean(eGFR, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(eGFR, na.rm = TRUE), 1), 
+                     ")"),
+    UDBP = paste0(round(mean(UDBP, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(UDBP, na.rm = TRUE), 1), 
+                     ")"),
+    VitD = paste0(round(mean(VitaminD, na.rm = TRUE), 1), 
+                     " (", 
+                     round(sd(VitaminD, na.rm = TRUE), 1), 
+                     ")")
+  )
+
+
+tableWord <- as.data.frame(t(table))
+
+## Boxplot -----------------------------------------------------------------------------------
+boxplot(ds$UDBP~ds$mcrProgress2)
+
+## ANOVA -------------------------------------------------------------------------------------
+anova <- aov(ds$VitaminD~ds$mcrProgress1)
+summary(anova)
+TukeyHSD(anova)
+```
+
