@@ -228,17 +228,16 @@ ds_mcr <- ds %>%
   mutate(mcr_cat = factor(mcr_cat,
                           levels = c("Normal", "Albuminuria"),
                           ordered = TRUE)) %>% 
-  filter(VN == 1, UDBP < 5000)
+  filter(VN == 1)
 
-ds_mcr %>% 
-  filter(UDBP < 5000, CRP < 10) %>% 
-  select(mcr_status, udbpCrRatio) %>% 
-  na.omit() %>% 
-  box_plot2("mcr_status", "log(udbpCrRatio)", 
+ds1 %>% 
+  select(acr_status, udbpCrRatio) %>%
+  na.omit() %>%
+  box_plot2("acr_status", "log(udbpCrRatio)", 
             "Albuminuria",
             "log uVDBP:Creatinine") +
-  scale_x_discrete(labels = paste(levels(ds_mcr$mcr_status), 
-                                    "\n(n=", table(ds_mcr$mcr_status), ")", sep = ""))
+  scale_x_discrete(labels = paste(levels(ds1$acr_status), 
+                                    "\n(n=", table(ds1$acr_status), ")", sep = ""))
 
 anova <- aov(ds_mcr$UDBP~ds_mcr$mcr_status)
 summary(anova)

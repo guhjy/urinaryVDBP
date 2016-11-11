@@ -232,3 +232,20 @@ summary(anova)
 TukeyHSD(anova)
 ```
 
+Check Missingness
+-----------------
+```{r missing}
+dsMissing <- ds %>% 
+  dplyr::select(SID, VN, MicroalbCreatRatio, MCR, 
+                UrineCreatinine, UrineMicroalbumin) %>% 
+  dplyr::group_by(SID, VN) %>% 
+  dplyr::filter(!is.na(MicroalbCreatRatio))
+
+dsMissing2 <- ds %>% 
+  dplyr::select(SID, VN, MicroalbCreatRatio, MCR, MicroalbCreatRatio,
+                ALT, Creatinine, 
+                UrineCreatinine, UrineMicroalbumin) %>% 
+  dplyr::group_by(SID, VN) %>% 
+  dplyr::filter(is.na(MCR))
+```
+
