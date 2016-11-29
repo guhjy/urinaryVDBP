@@ -1,7 +1,7 @@
 #######################################################################################
 ## Load and Clean Data [https://bitbucket.org/promise-cohort/promise]
 #######################################################################################
-install.packages(c("tidyverse", "neprho"))
+install.packages(c("tidyverse", "neprho", "dplyr", "msm"))
 
 library(nephro)
 library(carpenter)
@@ -14,7 +14,9 @@ library(pander)
 library(captioner)
 library(knitr)
 library(mason)
-library(epiR)
+library(msm)
+library(gee)
+
 
 
 # No need to run unless data has changed
@@ -24,6 +26,7 @@ ds <- PROMISE::PROMISE_data %>%
   mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62,
                        ifelse(UDBP == 0, 0.01,
                               UDBP)),
+         UrineCreatinine = ifelse(SID == 2028, 9, UrineCreatinine),
          ACR = round(UrineMicroalbumin/UrineCreatinine, digits = 2),
          Ethnicity = as.character(Ethnicity),
          isAfrican = ifelse(Ethnicity == 'African', 1, 0), 
@@ -157,7 +160,11 @@ ds <- ds %>%
                                              "Progress", "Regress")),
                 acrProgress2 = ifelse(acrDiff3_6 == 0, "No change",
                                     ifelse(acrDiff3_6 == 1 | acrDiff3_6 == 2 | acrDiff3_6 == 3,
-                                           "Progress", "Regress"))) %>% 
+                                           "Progress", "Regress")),
+                acrProgress = ifelse(acrProgress1 == "Progress" | acrProgress2 == "Progress",
+                                     "Progress",
+                                     ifelse(acrProgress1 == "Regress" | acrProgress2 == "Regress",
+                                            "Regress", "No change"))) %>% 
   dplyr::mutate(acrProg1_3 = factor(acrProg1_3,
                                     levels = c("No change", 
                                                "Norm to Micro", "Micro to Macro",
@@ -171,7 +178,12 @@ ds <- ds %>%
                                                "Norm to Macro",
                                                "Micro to Norm", "Macro to Micro",
                                                "Macro to Norm"),
-                                    ordered = TRUE))
+                                    ordered = TRUE),
+                acrProgress = factor(acrProgress,
+                                     levels = c("No change",
+                                                "Progress",
+                                                "Regress"),
+                                     ordered = TRUE))
 
 ## To find how many people have missing baseline but subsequent follow up, use
 ## `sum(ds$n/3)`
@@ -179,6 +191,7 @@ ds <- ds %>%
 rm(ds_VN1)
 rm(ds_VN3)
 rm(ds_VN6)
+
   
 # Save the data ===================================================================================
 

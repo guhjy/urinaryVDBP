@@ -21,26 +21,85 @@ library(pander)
 library(captioner)
 library(knitr)
 library(mason)
+library(msm)
+library(gee)
 ```
 
 Abstract
 --------
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+This document examines the progression and regression of kidney dysfunction using the 
+urinary albumin-to-creatinine ratio (ACR).
 
 
 Find n
 ------
 ```{r}
-ds1 <- ds %>% 
-  filter(VN == 1)
-ds3 <- ds %>% 
-  filter(VN == 3)
+## msm package
+ds_msm <- ds %>% 
+  dplyr::select(SID, VN, acr_status) %>% 
+  dplyr::group_by(SID, VN) %>% 
+  na.omit() 
 
-table(ds1$mcrProg1_3)
-table(ds3$mcrProg3_6)
+statetable.msm(acr_status, SID, data=ds_msm)
+
+
+ds1 <- ds %>% 
+  filter(VN == 1) %>% 
+  select(ACR, acrProgress1) %>% 
+  na.omit()
+
+table(ds1$acrProgress1)
+
+## Total: 494
+
+rm(ds1)
+
+## -------------------------------------------------------------------------------------------
+
+ds3 <- ds %>% 
+  filter(VN == 6) %>% 
+  select(ACR, acrProgress2)
+
+table(ds3$acrProgress2)
+
+## total: 453
+
+rm(ds3)
+
+## -------------------------------------------------------------------------------------------
+
+ds_noReg <- ds %>% 
+  mutate(acr1_noReg = ifelse(acrProgress1 == "Progress", "Progress",
+                             "No change"),
+         acr2_noReg = ifelse(acrProgress2 == "Progress", "Progress",
+                             "No change"))
+
+ds1 <- ds_noReg %>% 
+  filter(VN == 1)
+  
+table(ds1$acr1_noReg)
+
+rm(ds1)
+
+############
+
+ds3 <- ds_noReg %>% 
+  filter(VN == 3)
+  
+table(ds3$acr2_noReg)
+
+rm(ds3)
+
+## -------------------------------------------------------------------------------------------
+
+ds_total <- ds %>% 
+  # filter(VN == 3) %>% 
+  select(SID, VN, acr_status, acrProgress1, acrProgress2, acrProgress)
+
+table(ds_total$acrProgress)
+
+table(ds$acrProgress)
 ```
 
 
@@ -51,7 +110,7 @@ Values Across Categories
 
 table <- ds %>% 
   dplyr::filter(VN == 1) %>%
-  dplyr::group_by(mcrProg1_3) %>% 
+  dplyr::group_by(acrProg1_3) %>% 
   dplyr::summarise(
     n = n(),
     Age = paste0(round(mean(Age, na.rm = TRUE), 1), 
@@ -83,7 +142,7 @@ table <- ds %>%
                      round(sd(VitaminD, na.rm = TRUE), 1), 
                      ")")
   )
-  # tidyr::spread(mcrProg1_3, n)
+  # tidyr::spread(acrProg1_3, n)
 
 
 tableWord <- as.data.frame(t(table))
@@ -95,7 +154,7 @@ tableWord <- as.data.frame(t(table))
 
 table <- ds %>% 
   dplyr::filter(VN == 1) %>%
-  dplyr::group_by(mcrProgress1) %>% 
+  dplyr::group_by(acrProgress1) %>% 
   dplyr::summarise(
     n = n(),
     Age = paste0(round(mean(Age, na.rm = TRUE), 1), 
@@ -127,13 +186,13 @@ table <- ds %>%
                      round(sd(VitaminD, na.rm = TRUE), 1), 
                      ")")
   )
-  # tidyr::spread(mcrProg1_3, n)
+  # tidyr::spread(acrProg1_3, n)
 
 
 tableWord <- as.data.frame(t(table))
 
 ## ANOVA -------------------------------------------------------------------------------------
-anova <- aov(ds$Waist~ds$mcrProgress1)
+anova <- aov(ds$Waist~ds$acrProgress1)
 summary(anova)
 TukeyHSD(anova)
 ```
@@ -144,7 +203,7 @@ TukeyHSD(anova)
 
 table <- ds %>% 
   dplyr::filter(VN == 1) %>%
-  dplyr::group_by(mcrProg3_6) %>% 
+  dplyr::group_by(acrProg3_6) %>% 
   dplyr::summarise(
     n = n(),
     Age = paste0(round(mean(Age, na.rm = TRUE), 1), 
@@ -187,7 +246,7 @@ tableWord <- as.data.frame(t(table))
 
 table <- ds %>% 
   dplyr::filter(VN == 1) %>%
-  dplyr::group_by(mcrProgress2) %>% 
+  dplyr::group_by(acrProgress2) %>% 
   dplyr::summarise(
     n = n(),
     Age = paste0(round(mean(Age, na.rm = TRUE), 1), 
@@ -224,10 +283,10 @@ table <- ds %>%
 tableWord <- as.data.frame(t(table))
 
 ## Boxplot -----------------------------------------------------------------------------------
-boxplot(ds$UDBP~ds$mcrProgress2)
+boxplot(ds$UDBP~ds$acrProgress2)
 
 ## ANOVA -------------------------------------------------------------------------------------
-anova <- aov(ds$VitaminD~ds$mcrProgress1)
+anova <- aov(ds$VitaminD~ds$acrProgress1)
 summary(anova)
 TukeyHSD(anova)
 ```
@@ -236,16 +295,16 @@ Check Missingness
 -----------------
 ```{r missing}
 dsMissing <- ds %>% 
-  dplyr::select(SID, VN, MicroalbCreatRatio, MCR, 
+  dplyr::select(SID, VN, MicroalbCreatRatio, ACR, 
                 UrineCreatinine, UrineMicroalbumin) %>% 
   dplyr::group_by(SID, VN) %>% 
   dplyr::filter(!is.na(MicroalbCreatRatio))
 
 dsMissing2 <- ds %>% 
-  dplyr::select(SID, VN, MicroalbCreatRatio, MCR, MicroalbCreatRatio,
+  dplyr::select(SID, VN, MicroalbCreatRatio, ACR, MicroalbCreatRatio,
                 ALT, Creatinine, 
                 UrineCreatinine, UrineMicroalbumin) %>% 
   dplyr::group_by(SID, VN) %>% 
-  dplyr::filter(is.na(MCR))
+  dplyr::filter(is.na(ACR))
 ```
 

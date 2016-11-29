@@ -1,0 +1,48 @@
+---
+title: "ADA Abstract"
+author: "Windy Wang"
+date: "November 28, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+ds <- readRDS(file='../data/ds.Rds')
+source('../R/functions.r')
+
+library(nephro)
+library(carpenter)
+library(ggplot2)
+library(knitr)
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(pander)
+library(captioner)
+library(knitr)
+library(mason)
+library(msm)
+library(gee)
+```
+
+Part 1 - Cross-Sectional
+========================
+
+
+Part 2 - GEE
+============
+
+Part 3 - Disease Progression
+============================
+
+Find n
+```{r}
+ds_msm <- ds %>% 
+  dplyr::select(SID, VN, eGFR_status, eGFR) %>% 
+  dplyr::group_by(SID, VN) %>% 
+  na.omit() 
+
+statetable.msm(eGFR_status, SID, data=ds_msm)
+```
+
+
