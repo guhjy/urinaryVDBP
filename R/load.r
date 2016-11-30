@@ -16,7 +16,7 @@ library(knitr)
 library(mason)
 library(msm)
 library(gee)
-
+library(magrittr)
 
 
 # No need to run unless data has changed
@@ -77,6 +77,7 @@ ds <- PROMISE::PROMISE_data %>%
          Ethnicity = factor(Ethnicity,
                             levels = c("European", "Latino/a", "South Asian", "Other"),
                             ordered = TRUE)) %>%
+  dplyr::mutate(ifelse())
   dplyr::select(SID, BMI, Waist, Age, Sex, Ethnicity, VN, fVN,
        Glucose0, Glucose120, DM, IFG, IGT, 
        dm_status, acr_status, acr_status2, eGFR_status, UDBP_status,
@@ -84,6 +85,12 @@ ds <- PROMISE::PROMISE_data %>%
        UDBP, udbpCrRatio, VitaminD,
        MeanArtPressure, Systolic, Diastolic, PTH, ALT,
        UrinaryCalcium, matches("meds"), SmokeCigs, Canoe)
+  
+# Progression Data =================================================================================
+
+dsProgress <- ds %>% 
+  dplyr::select(SID, VN, acr_status, eGFR_status, UDBP_status) %>% 
+  
 
 # Categorize acr status =============================fix this up so ugly============================
 

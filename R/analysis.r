@@ -16,8 +16,8 @@ ds_canoe <- ds %>%
 
 ## Check n ##
 ds %>%
-  filter(VN == 1) %>% 
-  select(MicroalbCreatRatio) %>% 
+  filter(VN == 6) %>% 
+  select(ACR) %>% 
   na.omit() %>% 
   summarise(n = n())
 

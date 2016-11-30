@@ -108,7 +108,7 @@ Values Across Categories
 # Baseline measurements for subjects whose disease status changed between baseline 
 # and 3-year follow-up.
 
-table <- ds %>% 
+table2 <- ds %>% 
   dplyr::filter(VN == 1) %>%
   dplyr::group_by(acrProg1_3) %>% 
   dplyr::summarise(
@@ -142,7 +142,6 @@ table <- ds %>%
                      round(sd(VitaminD, na.rm = TRUE), 1), 
                      ")")
   )
-  # tidyr::spread(acrProg1_3, n)
 
 
 tableWord <- as.data.frame(t(table))

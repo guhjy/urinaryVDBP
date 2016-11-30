@@ -1,10 +1,9 @@
-#################################################################################
-## Tables
-#################################################################################
+
 rename_table_rows <- function(x) {
   gsub('Age', 'Age (years)', x) %>% 
   gsub('Waist', 'Waist Circumference (cm)', .) %>% 
   gsub('eGFR', 'Estimated GFR (ml/min/1.73m^2)', .) %>% 
+  gsub('ACR', 'Urinary Albumin-to-Creatinine Ratio (mg/mmol)', .) %>% 
   gsub('MicroalbCreatRatio', 'Microalbumin:Creatinine', .) %>%
   gsub('UrineCreatinine', 'Urinary Creatinine (mmol/L)', .) %>% 
   gsub('UrineMicroalbumin', 'Urinary Microalbumin (mg/L)', .) %>% 
@@ -22,52 +21,31 @@ rename_table_rows <- function(x) {
   gsub('NGT', 'Normal', .)
 }
 
-## Subject Characterization
+# Subject Characterization ======================================================================
 
-table_baseline <- function(data, byfactor = '', caption=NULL) {
+## This function does not take ordered variables. Make sure all variables are
+## factors and unordered.
+
+table_subChar <- function(data) {
   data %>%
     mutate(
+      Ethnicity = factor(Ethnicity, ordered = FALSE),
+      acr_status = factor(acr_status, ordered = FALSE),
       eGFR_status = factor(eGFR_status, ordered = FALSE),
       dm_status = factor(dm_status, ordered = FALSE),
-      UDBP_status = factor(UDBP_status, ordered = FALSE),
-      fVN = factor(VN, levels=c(1, 3, 6), labels=c('Baseline', 'Year3', 'Year6'))
+      UDBP_status = factor(UDBP_status, ordered = FALSE)
     ) %>%
-    carpenter::outline_table(
-      c(
-        'Age',
-        'Sex',
-        'Ethnicity',
-        'BMI',
-        'Waist',
-        'eGFR',
-        'MicroalbCreatRatio',
-        'UrineCreatinine',
-        'UrineMicroalbumin',
-        'UDBP',
-        'Creatinine', 
-        'VitaminD', 
-        "PTH", 
-        "ALT", 
-        'Systolic', 
-        'Diastolic', 
-        'MeanArtPressure',
-        'Glucose0',
-        'Glucose120',
-        'dm_status'
-      ),
-      byfactor
-      
-    ) %>%
+    carpenter::outline_table("fVN") %>%
     carpenter::add_rows(c('Age'),
-                        carpenter::stat_meanSD, digits = 1) %>%
+                        carpenter::stat_meanSD) %>%
     carpenter::add_rows(c('Sex', "Ethnicity"),
-                        carpenter::stat_nPct, digits = 1) %>% 
+                        carpenter::stat_nPct) %>% 
     carpenter::add_rows(c('BMI', 'Waist'),
-                        carpenter::stat_meanSD, digits = 1) %>%
+                        carpenter::stat_meanSD) %>%
     carpenter::add_rows(
       c(
         'eGFR',
-        'MicroalbCreatRatio',
+        'ACR',
         'UrineCreatinine',
         'UrineMicroalbumin',
         'UDBP'
@@ -86,68 +64,12 @@ table_baseline <- function(data, byfactor = '', caption=NULL) {
                         digits = 1) %>%
     carpenter::add_rows(c('dm_status'),
                         carpenter::stat_nPct, digits = 1) %>% 
-    carpenter::rename_rows(rename_table_rows) %>%
-    # carpenter::rename_columns('', 'Undetectable (n=12)', 'Below Limit (n=57)',
-    #                           'Normal (n=360)', 'Above Limit (n=310)')
-    carpenter::construct_table(caption=caption)
+    carpenter::renaming("rows", rename_table_rows) %>%
+    carpenter::build_table()
 }
 
-table_progression <- function(data, byfactor = "") {
-  data %>%
-    carpenter::outline_table(
-      c(
-        'Age',
-        'BMI',
-        'Waist',
-        'eGFR',
-        'MicroalbCreatRatio',
-        'UrineCreatinine',
-        'UrineMicroalbumin',
-        'UDBP',
-        'Creatinine',
-        'VitaminD',
-        "PTH",
-        "ALT",
-        'Systolic',
-        'Diastolic',
-        'MeanArtPressure',
-        'Glucose0',
-        'Glucose120'
-      ),
-      byfactor
-      
-    ) %>%
-    carpenter::add_rows(c('Age'),
-                        carpenter::stat_meanSD, digits = 1) %>%
-    carpenter::add_rows(c('BMI', 'Waist'),
-                        carpenter::stat_meanSD, digits = 1) %>%
-    carpenter::add_rows(
-      c(
-        'eGFR',
-        'MicroalbCreatRatio',
-        'UrineCreatinine',
-        'UrineMicroalbumin',
-        'UDBP'
-      ),
-      carpenter::stat_meanSD,
-      digits = 1
-    ) %>%
-    carpenter::add_rows(c('Creatinine', 'VitaminD', "PTH", "ALT"),
-                        carpenter::stat_meanSD,
-                        digits = 1) %>%
-    carpenter::add_rows(c('Systolic', 'Diastolic', 'MeanArtPressure'),
-                        carpenter::stat_meanSD,
-                        digits = 1) %>%
-    carpenter::add_rows(c('Glucose0', 'Glucose120'),
-                        carpenter::stat_meanSD,
-                        digits = 1) %>%
-    carpenter::rename_rows(rename_table_rows) %>%
-    # carpenter::rename_columns('', 'Undetectable (n=12)', 'Below Limit (n=57)',
-    #                           'Normal (n=360)', 'Above Limit (n=310)')
-    carpenter::construct_table()
-}
 
-# Plots ------------------------------------------------------------------------
+# Plots =========================================================================================
 
 ## Scatterplot ##
 scatter_plot = function(data, xvar, yvar, xlab='', ylab='') {
