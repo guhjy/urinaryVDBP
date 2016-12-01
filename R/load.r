@@ -21,7 +21,7 @@ library(magrittr)
 
 # No need to run unless data has changed
 
-ds <- PROMISE::PROMISE_data %>%
+ds <- PROMISE::PROMISE %>%
   filter(UDBP < 10000) %>% 
   mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62,
                        ifelse(UDBP == 0, 0.01,
@@ -77,7 +77,6 @@ ds <- PROMISE::PROMISE_data %>%
          Ethnicity = factor(Ethnicity,
                             levels = c("European", "Latino/a", "South Asian", "Other"),
                             ordered = TRUE)) %>%
-  dplyr::mutate(ifelse())
   dplyr::select(SID, BMI, Waist, Age, Sex, Ethnicity, VN, fVN,
        Glucose0, Glucose120, DM, IFG, IGT, 
        dm_status, acr_status, acr_status2, eGFR_status, UDBP_status,
@@ -203,3 +202,7 @@ rm(ds_VN6)
 # Save the data ===================================================================================
 
 saveRDS(ds, file='data/ds.Rds')
+
+
+ds_old <- PROMISE::PROMISE_data
+saveRDS(ds, file='data/ds_old.Rds')
