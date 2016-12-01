@@ -17,15 +17,15 @@ library(mason)
 library(msm)
 library(gee)
 library(magrittr)
+library(lme4)
+library(lmerTest)
 
 
 # No need to run unless data has changed
 
 ds <- PROMISE::PROMISE %>%
   filter(UDBP < 10000) %>% 
-  mutate(UDBP = ifelse(UDBP>0 & UDBP<1.23, 0.62,
-                       ifelse(UDBP == 0, 0.01,
-                              UDBP)),
+  mutate(UDBP = ifelse(UDBP == 0, 0.01, UDBP),
          UrineCreatinine = ifelse(SID == 2028, 9, UrineCreatinine),
          ACR = round(UrineMicroalbumin/UrineCreatinine, digits = 2),
          Ethnicity = as.character(Ethnicity),

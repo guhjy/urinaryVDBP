@@ -35,36 +35,34 @@ table_subChar(ds)
 
 Statististical tests
 ```{r stats}
-ds_subChar <- ds %>% 
-  dplyr::select(fVN, Age, BMI, Waist, eGFR, ACR,
-                UrineCreatinine, UrineMicroalbumin,
-                UDBP, Creatinine, VitaminD, PTH, ALT, 
-                Systolic, Diastolic, MeanArtPressure)
+m <- lmer(Glucose0 ~ fVN + (1 | SID), data=ds)
+summary(m)
 
-for(i in 1:(ncol(ds_subChar) - 1)) {
-  columns <- names(ds_subChar[i])
-  anovaresult <- summary(aov(ds_subChar[, i] ~ fVN, data = ds_subChar))
-  posthocresult <- TukeyHSD(aov(ds_subChar[, i] ~ fVN, data = ds_subChar))
-  
-  print(columns)
-  print(anovaresult)
-  print(posthocresult)
-}
-
-anova <- aov(ds$Glucose120~ds$fVN)
+# ds_subChar <- ds %>% 
+#   dplyr::select(fVN, Age, BMI, Waist, eGFR, ACR,
+#                 UrineCreatinine, UrineMicroalbumin,
+#                 UDBP, Creatinine, VitaminD, PTH, ALT, 
+#                 Systolic, Diastolic, MeanArtPressure)
+# 
+# for(i in 1:(ncol(ds_subChar) - 1)) {
+#   columns <- names(ds_subChar[i])
+#   anovaresult <- summary(aov(ds_subChar[, i] ~ fVN, data = ds_subChar))
+#   posthocresult <- TukeyHSD(aov(ds_subChar[, i] ~ fVN, data = ds_subChar))
+#   
+#   print(columns)
+#   print(anovaresult)
+#   print(posthocresult)
+# }
+# 
+anova <- aov(Creatinine ~ fVN + SID, data=ds)
 summary(anova)
-TukeyHSD(anova)
-
-rm(anova)
-
-# Chi-square
-chisq.test(table(ds$dm_status, ds$fVN), correct = TRUE)
+TukeyHSD(anova, which="fVN")
 ```
 
 
 Check n
 ```{r n}
-table(ds$fVN)
+# table(ds$fVN)
 ```
 
 
@@ -102,11 +100,11 @@ Part 3 - Disease Progression
 
 Find n
 ```{r}
-ds %>% 
-  dplyr::select(SID, VN, eGFR_status, eGFR) %>% 
-  dplyr::group_by(SID, VN) %>% 
-  na.omit() %>% 
-  statetable.msm(eGFR_status, SID, data= .)
+# ds %>% 
+#   dplyr::select(SID, VN, eGFR_status, eGFR) %>% 
+#   dplyr::group_by(SID, VN) %>% 
+#   na.omit() %>% 
+#   statetable.msm(eGFR_status, SID, data= .)
 
 ```
 
