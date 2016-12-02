@@ -112,7 +112,7 @@ Histogram
 ```{r histogram}
 ds %>% 
   filter(VN == 1) %>% 
-  histo_plot("UDBP", 50, "Urinary VDBP (ng/mL)")
+  histo_plot("log(udbpCrRatio)", 0.1, "Urinary VDBP (ng/mL)")
 ```
 
 Histogram: Longitudinal

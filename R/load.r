@@ -19,6 +19,7 @@ library(gee)
 library(magrittr)
 library(lme4)
 library(lmerTest)
+library(RBioplot)
 
 
 # No need to run unless data has changed

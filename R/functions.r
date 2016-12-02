@@ -97,7 +97,7 @@ scatter_plot = function(data, xvar, yvar, xlab='', ylab='') {
 
 
 ## Boxplot ##
-box_plot2 <- function(data, xvar, yvar, xlab="", ylab="") {
+box_plot <- function(data, xvar, yvar, xlab="", ylab="") {
   ggplot(data, aes_string(x = xvar, y = yvar)) +
     geom_boxplot(aes_string(colour = xvar, fill = xvar)) +
     stat_summary(geom = "crossbar", width = 0.65, fatten = 0, color = "white",
@@ -121,14 +121,14 @@ box_plot2 <- function(data, xvar, yvar, xlab="", ylab="") {
 
 
 
-box_plot = function(data, xvar, yvar, xlab='', ylab='') {
-  ggplot(data, aes(x=xvar, y=yvar)) +
-    geom_boxplot() +
-    # scale_x_discrete(limits=xcat) +
-    xlab(xlab) +
-    ylab(ylab) +
-    theme_bw()
-}
+# box_plot = function(data, xvar, yvar, xlab='', ylab='') {
+#   ggplot(data, aes(x=xvar, y=yvar)) +
+#     geom_boxplot() +
+#     # scale_x_discrete(limits=xcat) +
+#     xlab(xlab) +
+#     ylab(ylab) +
+#     theme_bw()
+# }
 
 ## Bargraph ##
 bar_plot = function(data, xvar, yvar, xlab='', ylab='') {
