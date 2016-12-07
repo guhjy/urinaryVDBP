@@ -19,14 +19,14 @@ library(gee)
 library(magrittr)
 library(lme4)
 library(lmerTest)
-library(RBioplot)
+#library(geepack)
 
 
 # No need to run unless data has changed
 
 ds <- PROMISE::PROMISE %>%
-  filter(UDBP < 10000) %>% 
-  mutate(UDBP = ifelse(UDBP == 0, 0.01, UDBP),
+  dplyr::filter(UDBP < 10000) %>% 
+  dplyr::mutate(UDBP = ifelse(UDBP == 0.01, NA, UDBP),
          UrineCreatinine = ifelse(SID == 2028, 9, UrineCreatinine),
          ACR = round(UrineMicroalbumin/UrineCreatinine, digits = 2),
          Ethnicity = as.character(Ethnicity),
@@ -44,13 +44,12 @@ ds <- PROMISE::PROMISE %>%
          acr_status2 = ifelse(acr_status == "Normoalbuminuria", "Normoalbuminuria",
                               "Albuminuria"),
          creat.mgdl = Creatinine * 0.011312,
-         eGFR = CKDEpi.creat(creat.mgdl, as.numeric(Sex)-1, Age, isAfrican),
+         eGFR = nephro::CKDEpi.creat(creat.mgdl, as.numeric(Sex)-1, Age, isAfrican),
          eGFR_status = ifelse(eGFR>=90, 'Normal',
                               ifelse(eGFR >= 60 & eGFR < 90, 'Mild',
                                      'Moderate')),
-         UDBP_status = ifelse(UDBP == 0.01, 'Undetected',
-                              ifelse(UDBP < 1.23, 'Low',
-                                     ifelse(UDBP > 60, 'High', 'Normal'))),
+         UDBP_status = ifelse(UDBP < 1.23, 'Trace',
+                              ifelse(UDBP > 60, 'High', 'Normal')),
          udbpCrRatio = UDBP/UrineCreatinine)%>% 
   dplyr::filter(eGFR<200) %>% 
   dplyr::filter(Creatinine<200) %>% 
@@ -73,7 +72,7 @@ ds <- PROMISE::PROMISE %>%
                           levels = c('NGT', 'Prediabetes', 'DM'), 
                           ordered = TRUE),
          UDBP_status = factor(UDBP_status, 
-                            levels = c('Undetected', 'Low', 'Normal', 'High'), 
+                            levels = c('Trace', 'Normal', 'High'), 
                             ordered = TRUE),
          Ethnicity = factor(Ethnicity,
                             levels = c("European", "Latino/a", "South Asian", "Other"),
@@ -84,7 +83,7 @@ ds <- PROMISE::PROMISE %>%
        MicroalbCreatRatio, eGFR, UrineMicroalbumin, UrineCreatinine, Creatinine, ACR,   
        UDBP, udbpCrRatio, VitaminD,
        MeanArtPressure, Systolic, Diastolic, PTH, ALT,
-       UrinaryCalcium, matches("meds"), SmokeCigs, Canoe)
+       UrinaryCalcium, dplyr::matches("meds"), SmokeCigs, Canoe)
   
 # Progression Data =================================================================================
 

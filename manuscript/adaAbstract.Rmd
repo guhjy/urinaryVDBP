@@ -1,13 +1,13 @@
 ---
 title: "ADA Abstract"
 author: "Windy Wang"
-date: "November 28, 2016"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 ds <- readRDS(file='../data/ds.Rds')
+ds1 <- ds %>% filter(fVN == "Baseline")
 source('../R/functions.r')
 
 library(nephro)
@@ -26,6 +26,7 @@ library(gee)
 library(magrittr)
 library(lme4)
 library(lmerTest)
+library(geepack)
 ```
 
 Subject Characterization
@@ -92,42 +93,31 @@ chisq.test(table(ds$dm_status, ds$fVN), correct = TRUE)
 Part 1 - Cross-Sectional
 ========================
 
-log UDBP (do not include)
--------------------------
-```{r log UDBP}
-ds %>% 
-  scatter_plot("UDBP", "udbpCrRatio",
-               "Urinary VDBP (ng/mL)", "uVDBP:creatinine") +
-  geom_smooth(colour = "grey50")
-
-# Spearman Correlation -----------------------
-
-ds %>% 
-  filter(fVN == "Baseline") %>% 
-  cor.test(formula = ~ UDBP + udbpCrRatio, data = ., method = "spearman")
-```
-
-
 ACR
 ---
 ```{r acr boxplot}
 
-# Box plot of uVDBP in different albuminuria categories ---------------
+# Box plot of uVDBP in different albuminuria categories
 
 ds %>% 
   filter(fVN == "Baseline") %>% 
   select(acr_status, udbpCrRatio) %>%
   na.omit() %>%
-  box_plot("acr_status", "udbpCrRatio", 
+  box_plot("acr_status", "log(udbpCrRatio)", 
             "Albuminuria",
-            "uVDBP:Creatinine")
+            "log uVDBP:Creatinine")
 
-# ANOVA-----------------------------------------------------------------
+# Boxplot of ACR in uVDBP categories
+ds1 %>% 
+  select(UDBP_status, ACR) %>% 
+  na.omit() %>% 
+  box_plot("UDBP_status", "log(ACR)",
+           "Urinary VDBP status",
+           "log urine albumin-to-creatinine ratio (mg/mmol)")
 
-ds1 <- ds %>% 
-  filter(fVN == "Baseline")
+# ANOVA
 
-anova <- aov(formula = UDBP~acr_status, data = ds1)
+anova <- aov(formula = log(udbpCrRatio)~acr_status, data = ds1)
 summary(anova)
 TukeyHSD(anova)
 rm(anova)
@@ -149,7 +139,7 @@ ds %>%
 # Spearman Correlation ------------------------------------------
 
 ds %>% 
-  filter(VN == 1) %>% 
+  filter(fVN == "Baseline") %>% 
   cor.test(formula = ~ ACR + udbpCrRatio, data = ., method = "spearman")
 ```
 
@@ -168,9 +158,17 @@ ds %>%
             "Estimated GFR (ml/min/1.73m^2)",
             "log uVDBP:Creatinine")
 
-# ANOVA-----------------------------------------------------------------
+# Boxplot of eGFR in uVDBP categories
+ds1 %>% 
+  select(UDBP_status, eGFR) %>% 
+  na.omit() %>% 
+  box_plot("UDBP_status", "eGFR",
+           "Urinary VDBP status",
+           "Estimated glomerular filtration rate (ml/min/1.73m^2)")
 
-anova <- aov(formula = UDBP~eGFR_status, data = ds1)
+# ANOVA
+
+anova <- aov(formula = log(udbpCrRatio)~eGFR_status, data = ds1)
 summary(anova)
 TukeyHSD(anova)
 rm(anova)
@@ -196,6 +194,45 @@ ds %>%
   cor.test(formula = ~ eGFR + udbpCrRatio, data = ., method = "spearman")
 ```
 
+Glycemic Status
+---------------
+```{r dm boxplot}
+
+# Boxplot of uVDBP concentrations across DM categories --------------
+
+ds %>% 
+  filter(fVN == "Baseline") %>% 
+  select(dm_status, udbpCrRatio) %>% 
+  na.omit() %>% 
+  box_plot("dm_status", "log(udbpCrRatio)", 
+            "Estimated GFR (ml/min/1.73m^2)",
+            "log uVDBP:Creatinine")
+
+# Boxplot of Glucose0 in uVDBP categories
+ds1 %>% 
+  select(UDBP_status, Glucose0) %>% 
+  na.omit() %>% 
+  box_plot("UDBP_status", "log(Glucose0)",
+           "Urinary VDBP status",
+           "Fasting Glucose")
+
+# Boxplot of Glucose120 in uVDBP categories
+ds1 %>% 
+  select(UDBP_status, Glucose120) %>% 
+  na.omit() %>% 
+  box_plot("UDBP_status", "log(Glucose120)",
+           "Urinary VDBP status",
+           "2h-post OGTT")
+
+# ANOVA---------------------------------------------------------------
+
+anova <- aov(formula = log(udbpCrRatio)~dm_status, data = ds1)
+summary(anova)
+TukeyHSD(anova)
+rm(anova)
+```
+
+
 
 25(OH)
 ------
@@ -220,9 +257,36 @@ ds %>%
 
 Part 2 - GEE
 ============
+```{r mason}
 
-Part 3 - Disease Progression
-============================
+ds %>% 
+  dplyr::mutate(udbpBase = ifelse(fVN == "Baseline", UDBP, NA),
+                ageBase = ifelse(fVN == "Baseline", Age, NA),
+                vitdBase = ifelse(fVN == "6Year", NA, VitaminD),
+                Ethnicity = factor(Ethnicity, ordered = FALSE)) %>% 
+  dplyr::arrange(SID, fVN) %>% 
+  dplyr::group_by(SID) %>% 
+  tidyr::fill(udbpBase, ageBase, vitdBase) %>% 
+  dplyr::ungroup() %>% 
+  mason::design("gee") %>% 
+  mason::add_settings(family = stats::gaussian(),
+                      corstr = "ar1", cluster.id = "SID") %>% 
+  mason::add_variables("yvars", c("ACR", "eGFR", "VitaminD", "vitdBase")) %>% 
+  mason::add_variables("xvars", "udbpBase") %>% 
+  mason::add_variables("covariates", c("VN", "ageBase", "Sex", "Ethnicity")) %>% 
+  mason::construct() %>% 
+  mason::scrub() %>% 
+  mason::polish_adjust_pvalue(method = "BH") %>% 
+  dplyr::mutate_each(dplyr::funs(format_rounding), estimate, std.error, conf.low, conf.high) %>% 
+  dplyr::mutate_each(dplyr::funs(format_p), p.value, adj.p.value)
+
+# To-Do: categorical outcome variables
+
+```
+
+
+Part 3 - Disease Progression (probably no time)
+===============================================
 
 Find n
 ```{r}

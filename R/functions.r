@@ -162,6 +162,19 @@ histo_plot = function(data, variable, bin, xlab='') {
 # EXAMPLE:
 # histo_plot(ds$VitaminD, 2, 'Serum 25(OH)D')
 
+# GEE ========================================================================================
+trim_ws <- function (x) {
+  gsub("^\\s+|\\s+$", "", x)
+}
+
+format_rounding <- function(x, digits = 2) {
+  trim_ws(format(round(x, digits = digits), nsmall = digits))
+}
+
+format_p <- function(x) {
+  format.pval(x, digits = 2, eps = 0.001)
+}
+
 # Conversion --------------------------------------------------------------------------------------
 get_dysglycemia_data <- function(data) {
   dysgly.data <-
