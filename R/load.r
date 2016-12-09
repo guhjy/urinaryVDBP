@@ -73,17 +73,16 @@ ds <- PROMISE::PROMISE %>%
                           ordered = TRUE),
          UDBP_status = factor(UDBP_status, 
                             levels = c('Trace', 'Normal', 'High'), 
-                            ordered = TRUE),
-         Ethnicity = factor(Ethnicity,
-                            levels = c("European", "Latino/a", "South Asian", "Other"),
-                            ordered = TRUE)) %>%
+                            ordered = TRUE)) %>% 
   dplyr::select(SID, BMI, Waist, Age, Sex, Ethnicity, VN, fVN,
-       Glucose0, Glucose120, DM, IFG, IGT, 
+       Glucose0, Glucose120, DM, IFG, IGT,
        dm_status, acr_status, acr_status2, eGFR_status, UDBP_status,
-       MicroalbCreatRatio, eGFR, UrineMicroalbumin, UrineCreatinine, Creatinine, ACR,   
+       MicroalbCreatRatio, eGFR, UrineMicroalbumin, UrineCreatinine, Creatinine, ACR,
        UDBP, udbpCrRatio, VitaminD,
        MeanArtPressure, Systolic, Diastolic, PTH, ALT,
-       UrinaryCalcium, dplyr::matches("meds"), SmokeCigs, Canoe)
+       UrinaryCalcium, fMedsBP, SmokeCigs, Canoe, dplyr::matches("meds"))
+
+## 
   
 # Progression Data =================================================================================
 

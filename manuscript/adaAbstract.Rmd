@@ -10,23 +10,7 @@ ds <- readRDS(file='../data/ds.Rds')
 ds1 <- ds %>% filter(fVN == "Baseline")
 source('../R/functions.r')
 
-library(nephro)
-library(carpenter)
-library(ggplot2)
-library(knitr)
-library(plyr)
 library(dplyr)
-library(tidyr)
-library(pander)
-library(captioner)
-library(knitr)
-library(mason)
-library(msm)
-library(gee)
-library(magrittr)
-library(lme4)
-library(lmerTest)
-library(geepack)
 ```
 
 Subject Characterization
@@ -36,8 +20,25 @@ Subject characteristics across visit numbers
 ```{r subject characteristics}
 table_subChar(ds)
 
-## check n
+# check n
+
 table(ds$fVN)
+
+table(ds6$fMedsBP)
+
+# check n of multiple variables
+ds %>%
+  dplyr::tbl_df() %>%
+  dplyr::filter(VN == 1) %>% 
+  dplyr::select(SID, Age, Sex, Ethnicity, BMI,  
+         UrineMicroalbumin, UrineCreatinine, MicroalbCreatRatio, eGFR,
+         VitaminD, Creatinine, UDBP,
+         MeanArtPressure, Systolic, Diastolic) %>%
+  tidyr::gather(Measure, Value, -SID) %>%
+  na.omit() %>%
+  dplyr::group_by(Measure) %>%
+  dplyr::summarise(n = n())
+
 ```
 
 Statististical tests
@@ -257,30 +258,84 @@ ds %>%
 
 Part 2 - GEE
 ============
-```{r mason}
 
-ds %>% 
+```{r correlation}
+dsGEE <- ds %>% 
   dplyr::mutate(udbpBase = ifelse(fVN == "Baseline", UDBP, NA),
                 ageBase = ifelse(fVN == "Baseline", Age, NA),
-                vitdBase = ifelse(fVN == "6Year", NA, VitaminD),
-                Ethnicity = factor(Ethnicity, ordered = FALSE)) %>% 
+                bmiBase = ifelse(fVN == "Baseline", BMI, NA),
+                waistBase = ifelse(fVN == "Baseline", Waist, NA), 
+                Sex = ifelse(Sex == "Male", 1, 0),
+                Ethnicity = ifelse(Ethnicity == "European", Ethnicity, "Other"),
+                Ethnicity = ifelse(Ethnicity == "European", 0, 1),
+                fMedsBP = ifelse(fMedsBP == "Yes", 1, 0)
+                # vitdBase = ifelse(fVN == "6Year", NA, VitaminD)
+                ) %>% 
   dplyr::arrange(SID, fVN) %>% 
   dplyr::group_by(SID) %>% 
-  tidyr::fill(udbpBase, ageBase, vitdBase) %>% 
-  dplyr::ungroup() %>% 
+  tidyr::fill(udbpBase, ageBase, bmiBase, waistBase) %>% 
+  dplyr::ungroup() %>%
+  dplyr::arrange(SID, VN) %>% 
+  dplyr::select(udbpBase, ACR, eGFR, VN, ageBase, Sex, Ethnicity, BMI, 
+                Waist, DM, fMedsBP)
+
+round(cor(dsGEE[sapply(dsGEE, is.numeric)], use = "complete.obs"), 2)
+
+# Heatmap
+
+corrplot::corrplot(cor(dsGEE[sapply(dsGEE, is.numeric)], use = "complete.obs"),
+                   method = "color")
+```
+
+
+```{r mason}
+
+gee <- ds %>% 
+  dplyr::mutate(udbpBase = ifelse(fVN == "Baseline", UDBP, NA),
+                ageBase = ifelse(fVN == "Baseline", Age, NA),
+                # bmiBase = ifelse(fVN == "Baseline", BMI, NA),
+                Ethnicity = ifelse(Ethnicity == "European", Ethnicity, "Other"),
+                fMedsBP = ifelse(is.na(fMedsBP), "No", "Yes"), 
+                fMedsBP = factor(fMedsBP, ordered = FALSE)
+                # vitdBase = ifelse(fVN == "Baseline", VitaminD, NA)
+                ) %>% 
+  dplyr::arrange(SID, fVN) %>% 
+  dplyr::group_by(SID) %>% 
+  tidyr::fill(udbpBase, ageBase) %>% 
+  dplyr::ungroup() %>%
+  dplyr::arrange(SID, VN) %>% 
   mason::design("gee") %>% 
   mason::add_settings(family = stats::gaussian(),
                       corstr = "ar1", cluster.id = "SID") %>% 
-  mason::add_variables("yvars", c("ACR", "eGFR", "VitaminD", "vitdBase")) %>% 
+  mason::add_variables("yvars", c("ACR", "eGFR")) %>% 
   mason::add_variables("xvars", "udbpBase") %>% 
-  mason::add_variables("covariates", c("VN", "ageBase", "Sex", "Ethnicity")) %>% 
+  mason::add_variables("covariates", c("VN", "ageBase", "Sex", "Ethnicity",  
+                                       "BMI", "DM", "fMedsBP")) %>%
   mason::construct() %>% 
   mason::scrub() %>% 
   mason::polish_adjust_pvalue(method = "BH") %>% 
-  dplyr::mutate_each(dplyr::funs(format_rounding), estimate, std.error, conf.low, conf.high) %>% 
+  # mason::polish_filter("Xterm", "term") %>%
+  dplyr::mutate_each(dplyr::funs(format_rounding), estimate, std.error, conf.low, conf.high) %>%
   dplyr::mutate_each(dplyr::funs(format_p), p.value, adj.p.value)
 
 # To-Do: categorical outcome variables
+
+```
+
+Graph
+```{r gee plot}
+
+gee %>%
+  dplyr::mutate(p.value = ifelse(p.value > 0.05, 1, 0.04)) %>%
+  seer::view_main_effect(
+  graph.options = 'dot.size',
+  groups = '~Yterms',
+  legend.title = 'FDR\nadjusted\np-values',
+  xlab = 'Percent difference with 95% CI in the outcomes\nfor each unit increase in baseline uVDBP',
+  ylab = 'Kidney Measures'
+  ) +
+  graph_theme(ticks = FALSE, legend.pos = 'right') +
+  ggplot2::theme(legend.margin = grid::unit(0, 'cm'))
 
 ```
 

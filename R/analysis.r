@@ -23,17 +23,16 @@ ds %>%
 
 ## Check n of multiple variables ##
 ds %>%
-  tbl_df() %>%
-  filter(VN == 1) %>% 
-  select(SID, Age, Sex, Ethnicity, BMI, Waist, 
+  dplyr::tbl_df() %>%
+  dplyr::filter(VN == 3) %>% 
+  dplyr::select(SID, Age, Sex, Ethnicity, BMI,  
          UrineMicroalbumin, UrineCreatinine, MicroalbCreatRatio, eGFR,
          VitaminD, Creatinine, PTH,
-         MeanArtPressure, Systolic, Diastolic,
-         Glucose0, Glucose120) %>%
-  gather(Measure, Value, -SID) %>%
+         MeanArtPressure, Systolic, Diastolic) %>%
+  tidyr::gather(Measure, Value, -SID) %>%
   na.omit() %>%
-  group_by(Measure) %>%
-  summarise(n = n())
+  dplyr::group_by(Measure) %>%
+  dplyr::summarise(n = n())
 
 # Check normal distribution
 histo_plot(ds, UrinaryCalcium, 0.1, 'UDBP')
@@ -70,10 +69,10 @@ ds %>%
   summarise(meansd=paste0(round(mean(UDBP), 1), " (",round(sd(UDBP), 1), ")")) %>% 
   spread(fVN, meansd)
 
-prop.table(table(tb1$Sex, tb1$UDBP_status), 2) # column proportions (1 to 2 for row/column)
+prop.table(table(ds$Sex, ds$UDBP_status), 2) # column proportions (1 to 2 for row/column)
 
 # aggregate method (old)
-aggregate(tb1$Age ~ tb1$eGFR_status, data=ds, FUN=mean)
+aggregate(ds$Age ~ ds$dm_status, data=ds, FUN=IQR)
 
 # ANOVA for table 1
 anova <- aov(ds$Glucose120~ds$eGFR_status)
