@@ -6,11 +6,13 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+
+library(dplyr)
+
 ds <- readRDS(file='../data/ds.Rds')
 ds1 <- ds %>% filter(fVN == "Baseline")
 source('../R/functions.r')
 
-library(dplyr)
 ```
 
 Subject Characterization
@@ -309,8 +311,9 @@ gee <- ds %>%
                       corstr = "ar1", cluster.id = "SID") %>% 
   mason::add_variables("yvars", c("ACR", "eGFR")) %>% 
   mason::add_variables("xvars", "udbpBase") %>% 
-  mason::add_variables("covariates", c("VN", "ageBase", "Sex", "Ethnicity",  
-                                       "BMI", "DM", "fMedsBP")) %>%
+  mason::add_variables("covariates", c("VN")) %>% 
+  # mason::add_variables("covariates", c("VN", "ageBase", "Sex", "Ethnicity",  
+  #                                      "BMI", "DM", "fMedsBP")) %>%
   mason::construct() %>% 
   mason::scrub() %>% 
   mason::polish_adjust_pvalue(method = "BH") %>% 
