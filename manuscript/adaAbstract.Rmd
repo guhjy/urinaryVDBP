@@ -293,17 +293,25 @@ corrplot::corrplot(cor(dsGEE[sapply(dsGEE, is.numeric)], use = "complete.obs"),
 ```{r mason}
 
 gee <- ds %>% 
-  dplyr::mutate(udbpBase = ifelse(fVN == "Baseline", UDBP, NA),
-                ageBase = ifelse(fVN == "Baseline", Age, NA),
+  dplyr::mutate(udbpBase = ifelse(fVN == "Baseline", UDBP, NA)
+                # ageBase = ifelse(fVN == "Baseline", Age, NA),
                 # bmiBase = ifelse(fVN == "Baseline", BMI, NA),
-                Ethnicity = ifelse(Ethnicity == "European", Ethnicity, "Other"),
-                fMedsBP = ifelse(is.na(fMedsBP), "No", "Yes"), 
-                fMedsBP = factor(fMedsBP, ordered = FALSE)
+                # Ethnicity = ifelse(Ethnicity == "European", Ethnicity, "Other"),
+                # fMedsBP = ifelse(is.na(fMedsBP), "No", "Yes"), 
+                # fMedsBP = factor(fMedsBP, ordered = FALSE)
                 # vitdBase = ifelse(fVN == "Baseline", VitaminD, NA)
                 ) %>% 
+  dplyr::filter(!(fVN == "Baseline" & acr_status == "Macroalbuminuria")) %>%
+  dplyr::filter(!(fVN == "Baseline" & eGFR_status == "Moderate")) %>%
+  dplyr::filter(!(fVN == "Baseline" & dm_status == "DM")) %>%
   dplyr::arrange(SID, fVN) %>% 
   dplyr::group_by(SID) %>% 
-  tidyr::fill(udbpBase, ageBase) %>% 
+  tidyr::fill(udbpBase) %>% 
+  # dplyr::mutate(
+  #   eGFR = as.numeric(scale(eGFR)),
+  #   ACR = as.numeric(scale(ACR)),
+  #   udbpBase = as.numeric(scale(udbpBase))
+  #               ) %>%
   dplyr::ungroup() %>%
   dplyr::arrange(SID, VN) %>% 
   mason::design("gee") %>% 
@@ -333,7 +341,7 @@ gee %>%
   seer::view_main_effect(
   graph.options = 'dot.size',
   groups = '~Yterms',
-  legend.title = 'FDR\nadjusted\np-values',
+  legend.title = 'p-values',
   xlab = 'Percent difference with 95% CI in the outcomes\nfor each unit increase in baseline uVDBP',
   ylab = 'Kidney Measures'
   ) +
