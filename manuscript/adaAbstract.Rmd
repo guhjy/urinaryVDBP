@@ -307,12 +307,11 @@ gee <- ds %>%
   dplyr::arrange(SID, fVN) %>% 
   dplyr::group_by(SID) %>% 
   tidyr::fill(udbpBase) %>% 
-  # dplyr::mutate(
-  #   eGFR = as.numeric(scale(eGFR)),
-  #   ACR = as.numeric(scale(ACR)),
-  #   udbpBase = as.numeric(scale(udbpBase))
-  #               ) %>%
   dplyr::ungroup() %>%
+  dplyr::group_by(VN) %>% 
+  dplyr::mutate(
+    udbpBase = as.numeric(scale(udbpBase))
+  ) %>% 
   dplyr::arrange(SID, VN) %>% 
   mason::design("gee") %>% 
   mason::add_settings(family = stats::gaussian(),

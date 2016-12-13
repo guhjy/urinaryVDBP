@@ -68,7 +68,6 @@ table_subChar <- function(data) {
     carpenter::build_table()
 }
 
-
 # Plots =========================================================================================
 
 ## Scatterplot ##
