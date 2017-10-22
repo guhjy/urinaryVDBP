@@ -1,0 +1,19 @@
+Package: urinaryVDBP
+Title: Exploring urinary vitamin D binding protein interactions in the PROMISE cohort.
+Version: 0.0.0.9000
+Authors@R: person("Windy", "Wang", email = "windy.wang@mail.utoronto.ca", role = c("aut", "cre"))
+Description: What the package does (one paragraph).
+Depends: R (>= 3.3.1)
+License: What license is it under?
+Encoding: UTF-8
+LazyData: true
+Suggests: knitr,
+    rmarkdown,
+    dplyr,
+    captioner
+VignetteBuilder: knitr
+Imports: devtools,
+    tableone,
+    dplyr,
+    extrafont
+RoxygenNote: 6.0.1
