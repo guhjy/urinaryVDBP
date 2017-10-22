@@ -35,6 +35,7 @@ ds %>%
   dplyr::summarise(n = n())
 
 # ' @Check normal distribution
+# ' @export
 histo_plot(ds, UrinaryCalcium, 0.1, 'UDBP')
 
 # ' @Check continous distribution
