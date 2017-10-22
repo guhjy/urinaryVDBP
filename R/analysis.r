@@ -21,7 +21,7 @@ ds %>%
   na.omit() %>% 
   summarise(n = n())
 
-## Check n of multiple variables ##
+## ' @Check n of multiple variables ##
 ds %>%
   dplyr::tbl_df() %>%
   dplyr::filter(VN == 3) %>% 
@@ -34,10 +34,10 @@ ds %>%
   dplyr::group_by(Measure) %>%
   dplyr::summarise(n = n())
 
-# Check normal distribution
+# ' @Check normal distribution
 histo_plot(ds, UrinaryCalcium, 0.1, 'UDBP')
 
-# Check continous distribution
+# ' @Check continous distribution
 scatter.plot(ds$Creatinine, ds$UDBP, 
              'Serum Creatinine', 'UDBP') +
 geom_smooth(se=TRUE, colour='black') # method=lm for linear line
@@ -71,15 +71,15 @@ ds %>%
 
 prop.table(table(ds$Sex, ds$UDBP_status), 2) # column proportions (1 to 2 for row/column)
 
-# aggregate method (old)
+# ' @aggregate method (old)
 aggregate(ds$Age ~ ds$dm_status, data=ds, FUN=IQR)
 
-# ANOVA for table 1
+# ' @ANOVA for table 1
 anova <- aov(ds$Glucose120~ds$eGFR_status)
 summary(anova)
 TukeyHSD(anova)
 
-# Chi-square for table 1
+# ' @Chi-square for table 1
 chisq.test(table(ds$dm_status, ds$eGFR_status), correct = TRUE)
 
 
